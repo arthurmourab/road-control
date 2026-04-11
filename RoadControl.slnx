@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="RC.Data/RC.Data.csproj" />
+  <Project Path="RC.Domain/RC.Domain.csproj" />
+  <Project Path="RC.Service/RC.Service.csproj" />
+  <Project Path="RC.Shared/RC.Shared.csproj" />
+  <Project Path="RC.WebApi/RC.WebApi.csproj" />
+</Solution>

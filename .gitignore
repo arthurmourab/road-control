@@ -1,0 +1,16 @@
+/.vs
+
+RC.Data/bin
+RC.Data/obj
+
+RC.Domain/bin
+RC.Domain/obj
+
+RC.Service/bin
+RC.Service/obj
+
+RC.Shared/bin
+RC.Shared/obj
+
+RC.WebApi/bin
+RC.WebApi/obj
