@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Text;
 
-namespace RC.Domain.Enums
+namespace RC.Shared.Enums
 {
     public enum VehicleTypeEnum
     {

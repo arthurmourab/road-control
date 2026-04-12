@@ -1,5 +1,7 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using RC.Data.Database;
 using RC.Data.Repositories;
 using RC.Domain.Interfaces.Repositories;
 using RC.Domain.Interfaces.Services;
@@ -16,6 +18,8 @@ namespace RC.Service.Extensions
     {
         public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
         {
+            services.AddDbContext<RCDbContext>(options => options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+
             // Adição de serviços
             services.AddScoped<IVehicleService, VehicleService>();
 

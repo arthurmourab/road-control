@@ -1,4 +1,4 @@
-﻿using RC.Domain.Enums;
+﻿using RC.Shared.Enums;
 using System;
 using System.Collections.Generic;
 using System.Text;

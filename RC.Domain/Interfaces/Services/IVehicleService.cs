@@ -1,4 +1,5 @@
 ﻿using RC.Shared.Dtos;
+using RC.Shared.Models.Results;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -7,6 +8,6 @@ namespace RC.Domain.Interfaces.Services
 {
     public interface IVehicleService
     {
-        Task<IEnumerable<VehicleDto>> GetAllVehiclesAsync();
+        Task<PagedResult<VehicleDto>> GetAllVehiclesAsync(int currentPage, int pageSize);
     }
 }

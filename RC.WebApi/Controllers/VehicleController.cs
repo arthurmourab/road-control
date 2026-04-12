@@ -5,17 +5,32 @@ using RC.Shared.Dtos;
 namespace RC.WebApi.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("v1/[controller]")]
     public class VehicleController(IVehicleService vehicleService) : Controller
     {
         private readonly IVehicleService _vehicleService = vehicleService;
 
         [HttpGet]
-        public async Task<IEnumerable<VehicleDto>>GetAllVehiclesAsync()
+        public async Task<IActionResult> GetAllVehiclesAsync([FromQuery] int currentPage = 1, int pageSize = 20)
         {
 
-            return await _vehicleService.GetAllVehiclesAsync();
+            try
+            {
+                var response =  await _vehicleService.GetAllVehiclesAsync(currentPage, pageSize);
+                return Ok(response);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500);
+            }
+            
         }
+
+        //[HttpPost]
+        //public async Task<VehicleDto> CreateVehicleAsync([FromBody] VehicleDto newVehicle)
+        //{
+
+        //}
 
     }
 }
