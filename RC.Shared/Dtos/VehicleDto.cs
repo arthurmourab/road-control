@@ -17,6 +17,6 @@ namespace RC.Shared.Dtos
         public int YearManufacture { get; set; }
         public int YearModel { get; set; }
         public int Mileage { get; set; }
-        public bool? IsActive { get; set; }
+        public bool? IsActive { get; set; } = true;
     }
 }

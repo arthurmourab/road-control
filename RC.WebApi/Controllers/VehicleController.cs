@@ -26,11 +26,19 @@ namespace RC.WebApi.Controllers
             
         }
 
-        //[HttpPost]
-        //public async Task<VehicleDto> CreateVehicleAsync([FromBody] VehicleDto newVehicle)
-        //{
-
-        //}
+        [HttpPost]
+        public async Task<IActionResult> AddNewVehicleAsync([FromBody] VehicleDto newVehicle)
+        {
+            try
+            {
+                var response = await _vehicleService.AddNewVehicleAsync(newVehicle);
+                return StatusCode(StatusCodes.Status201Created, response);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500);
+            }
+        }
 
     }
 }

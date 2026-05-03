@@ -16,25 +16,26 @@ namespace RC.Data.Repositories
 
         public async Task<IEnumerable<Vehicle>> GetAllVehiclesAsync(int currentPage, int pageSize)
         {
-            try
-            {
-                return await _context.Set<Vehicle>()
-                                .OrderBy(x => x.Id)
-                                .Skip((currentPage - 1) * pageSize)
-                                .Take(pageSize)
-                                .ToListAsync();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-                throw;
-            }
-            
+            return await _context.Set<Vehicle>()
+                .OrderBy(x => x.Id)
+                .Skip((currentPage - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();           
         }
 
-        public async Task<int> GetAllVehiclesNumber()
+        public async Task<int> GetAllVehiclesNumberAsync()
         {
             return await _context.Set<Vehicle>().CountAsync();
         }
+
+        public async Task<Vehicle> AddNewVehicleAsync(Vehicle newVehicle)
+        {
+            await _context.AddAsync(newVehicle);
+            await _context.SaveChangesAsync();
+
+            return newVehicle;
+        }
+
+
     }
 }

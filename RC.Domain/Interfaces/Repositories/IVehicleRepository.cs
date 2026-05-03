@@ -8,6 +8,7 @@ namespace RC.Domain.Interfaces.Repositories
     public interface IVehicleRepository
     {
         Task<IEnumerable<Vehicle>> GetAllVehiclesAsync(int currentPage, int pageSize);
-        Task<int> GetAllVehiclesNumber();
+        Task<int> GetAllVehiclesNumberAsync();
+        Task<Vehicle> AddNewVehicleAsync(Vehicle newVehicle);
     }
 }

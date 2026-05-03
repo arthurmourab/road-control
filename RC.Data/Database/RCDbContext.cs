@@ -10,7 +10,6 @@ namespace RC.Data.Database
     public class RCDbContext(DbContextOptions<RCDbContext> options) : DbContext(options)
     {
 
-
         public DbSet<Vehicle> Vehicles { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -19,6 +18,20 @@ namespace RC.Data.Database
         }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
+        }
+
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            foreach (var entry in ChangeTracker.Entries<BaseEntity>())
+            {
+                if (entry.State == EntityState.Added)
+                    entry.Property(x => x.CreatedAt).CurrentValue = DateTime.UtcNow;
+
+                if (entry.State is EntityState.Added or EntityState.Modified)
+                    entry.Property(x => x.UpdatedAt).CurrentValue = DateTime.UtcNow;
+            }
+
+            return await base.SaveChangesAsync(cancellationToken);
         }
     }
 }

@@ -9,5 +9,6 @@ namespace RC.Domain.Interfaces.Services
     public interface IVehicleService
     {
         Task<PagedResult<VehicleDto>> GetAllVehiclesAsync(int currentPage, int pageSize);
+        Task<VehicleDto> AddNewVehicleAsync(VehicleDto newVehicle);
     }
 }
