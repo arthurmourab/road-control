@@ -27,7 +27,7 @@ namespace RC.WebApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddNewVehicleAsync([FromBody] VehicleDto newVehicle)
+        public async Task<IActionResult> AddNewVehicleAsync([FromBody] NewVehicleDto newVehicle)
         {
             try
             {

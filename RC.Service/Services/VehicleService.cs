@@ -27,9 +27,9 @@ namespace RC.Service.Services
             };
         }
 
-        public async Task<VehicleDto> AddNewVehicleAsync(VehicleDto newVehicleDto)
+        public async Task<VehicleDto> AddNewVehicleAsync(NewVehicleDto newVehicleDto)
         {
-            var newVehicle = MapVehicleDtoToEntity(newVehicleDto);
+            var newVehicle = MapNewVehicleDtoToEntity(newVehicleDto);
 
             var insertedVehicle = await _vehicleRepository.AddNewVehicleAsync(newVehicle);
 
@@ -55,6 +55,21 @@ namespace RC.Service.Services
             };
         }
 
+        private Vehicle MapNewVehicleDtoToEntity(NewVehicleDto vehicle)
+        {
+            return new Vehicle
+            {
+                Type = vehicle.Type,
+                Plate = vehicle.Plate,
+                Brand = vehicle.Brand,
+                Model = vehicle.Model,
+                YearManufacture = vehicle.YearManufacture,
+                YearModel = vehicle.YearModel,
+                Mileage = vehicle.Mileage,
+                IsActive = true,
+            };
+        }
+
         private Vehicle MapVehicleDtoToEntity(VehicleDto vehicle)
         {
             return new Vehicle
@@ -69,6 +84,7 @@ namespace RC.Service.Services
                 IsActive = vehicle.IsActive ?? true,
             };
         }
+
 
         private IEnumerable<VehicleDto> MapVehicleEntityListToDtoList(IEnumerable<Vehicle> vehicles)
         {
