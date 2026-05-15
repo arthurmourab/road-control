@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using RC.Domain.Interfaces.Services;
-using RC.Shared.Dtos;
+using RC.Shared.Dtos.Vehicle;
 
 namespace RC.WebApi.Controllers
 {

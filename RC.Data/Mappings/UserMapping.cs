@@ -1,0 +1,33 @@
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using RC.Domain.Entities;
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace RC.Data.Mappings
+{
+    public class UserMapping : IEntityTypeConfiguration<User>
+    {
+        public void Configure(EntityTypeBuilder<User> builder)
+        {
+            builder.ToTable("Users", "rc");
+
+            builder.HasKey(u => u.Id);
+
+            builder.Property(u => u.Id).ValueGeneratedOnAdd();
+            builder.Property(u => u.Name).HasColumnName("Name").IsRequired();
+            builder.Property(u => u.LastName).HasColumnName("LastName").IsRequired();
+            builder.Property(u => u.Email).HasColumnName("Email").IsRequired();
+            builder.Property(u => u.PasswordHash).HasColumnName("PasswordHash").IsRequired();
+            builder.Property(u => u.RoleId).HasColumnName("RoleId").IsRequired();
+            builder.Property(u => u.IsActive).HasColumnName("IsActive").IsRequired();
+            builder.Property(u => u.CreatedAt).HasColumnName("CreatedAt").IsRequired();
+            builder.Property(u => u.UpdatedAt).HasColumnName("UpdatedAt");
+
+            builder.HasOne(u => u.Role)
+                .WithMany()
+                .HasForeignKey(u => u.RoleId);
+        }
+    }
+}

@@ -1,4 +1,5 @@
 ﻿using RC.Shared.Dtos;
+using RC.Shared.Dtos.Vehicle;
 using RC.Shared.Models.Results;
 using System;
 using System.Collections.Generic;
