@@ -22,6 +22,11 @@ namespace RC.Data.Repositories
                 .ToListAsync();
         }
 
+        public async Task<int> GetAllTotalAsync()
+        {
+            return await _context.Set<User>().CountAsync();
+        }
+
         public async Task<User?> GetByIdAsync(long id)
         {
             return await _context.Set<User>()

@@ -8,6 +8,7 @@ namespace RC.Domain.Interfaces.Repositories
     public interface IUserRepository
     {
         Task<IEnumerable<User>> GetAllAsync(int currentPage, int pageSize);
+        Task<int> GetAllTotalAsync();
         Task<User?> GetByIdAsync(long id);
         Task<User?> GetByEmailAsync(string email);
         Task<User> AddAsync(User newUser);

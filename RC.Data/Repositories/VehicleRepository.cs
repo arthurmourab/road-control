@@ -14,7 +14,7 @@ namespace RC.Data.Repositories
     {
         private readonly RCDbContext _context = context;
 
-        public async Task<IEnumerable<Vehicle>> GetAllVehiclesAsync(int currentPage, int pageSize)
+        public async Task<IEnumerable<Vehicle>> GetAllAsync(int currentPage, int pageSize)
         {
             return await _context.Set<Vehicle>()
                 .OrderBy(x => x.Id)
@@ -23,12 +23,12 @@ namespace RC.Data.Repositories
                 .ToListAsync();           
         }
 
-        public async Task<int> GetAllVehiclesNumberAsync()
+        public async Task<int> GetAllTotalAsync()
         {
             return await _context.Set<Vehicle>().CountAsync();
         }
 
-        public async Task<Vehicle> AddNewVehicleAsync(Vehicle newVehicle)
+        public async Task<Vehicle> AddNewAsync(Vehicle newVehicle)
         {
             await _context.AddAsync(newVehicle);
             await _context.SaveChangesAsync();

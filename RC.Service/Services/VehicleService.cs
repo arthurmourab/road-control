@@ -13,31 +13,31 @@ namespace RC.Service.Services
     {
         private readonly IVehicleRepository _vehicleRepository = vehicleRepository;
 
-        public async Task<PagedResult<VehicleDto>> GetAllVehiclesAsync(int currentPage, int pageSize)
+        public async Task<PagedResult<VehicleDto>> GetAllAsync(int currentPage, int pageSize)
         {
-            var vehicles = await _vehicleRepository.GetAllVehiclesAsync(currentPage, pageSize);
-            var vehiclesNumber = await _vehicleRepository.GetAllVehiclesNumberAsync();
+            var vehicles = await _vehicleRepository.GetAllAsync(currentPage, pageSize);
+            var vehiclesTotal = await _vehicleRepository.GetAllTotalAsync();
 
             return new PagedResult<VehicleDto>
             {
                 CurrentPage = currentPage,
                 PageSize = pageSize,
-                TotalRows = vehiclesNumber,
-                Results = MapVehicleEntityListToDtoList(vehicles)
+                TotalRows = vehiclesTotal,
+                Results = MapVehicleListToVehicleDtoList(vehicles)
             };
         }
 
-        public async Task<VehicleDto> AddNewVehicleAsync(NewVehicleDto newVehicleDto)
+        public async Task<VehicleDto> AddNewAsync(NewVehicleDto newVehicleDto)
         {
             var newVehicle = MapNewVehicleDtoToEntity(newVehicleDto);
 
-            var insertedVehicle = await _vehicleRepository.AddNewVehicleAsync(newVehicle);
+            var insertedVehicle = await _vehicleRepository.AddNewAsync(newVehicle);
 
-            var insertedVehicleDto = MapVehicleEntityToDto(insertedVehicle);
+            var insertedVehicleDto = MapVehicleEntityToVehicleDto(insertedVehicle);
             return insertedVehicleDto;
         }
 
-        private VehicleDto MapVehicleEntityToDto(Vehicle vehicle)
+        private VehicleDto MapVehicleEntityToVehicleDto(Vehicle vehicle)
         {
             return new VehicleDto
             {
@@ -86,7 +86,7 @@ namespace RC.Service.Services
         }
 
 
-        private IEnumerable<VehicleDto> MapVehicleEntityListToDtoList(IEnumerable<Vehicle> vehicles)
+        private IEnumerable<VehicleDto> MapVehicleListToVehicleDtoList(IEnumerable<Vehicle> vehicles)
         {
             return vehicles.Select(v => new VehicleDto
             {
@@ -104,7 +104,7 @@ namespace RC.Service.Services
             }).ToList();
         }
 
-        private IEnumerable<Vehicle> MapVehicleDtoListToEntityList (IEnumerable<VehicleDto> vehicles)
+        private IEnumerable<Vehicle> MapVehicleDtoListToList (IEnumerable<VehicleDto> vehicles)
         {
             return vehicles.Select(v => new Vehicle
             {
