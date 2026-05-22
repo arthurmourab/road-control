@@ -6,7 +6,7 @@ namespace RC.WebApi.Controllers
 {
     [ApiController]
     [Route("v1/[controller]")]
-    public class VehicleController(IVehicleService vehicleService) : Controller
+    public class VehicleController(IVehicleService vehicleService) : ControllerBase
     {
         private readonly IVehicleService _vehicleService = vehicleService;
 
@@ -32,7 +32,7 @@ namespace RC.WebApi.Controllers
             try
             {
                 var response = await _vehicleService.AddNewAsync(newVehicle);
-                return StatusCode(StatusCodes.Status201Created, response);
+                return StatusCode(201, response);
             }
             catch (Exception)
             {

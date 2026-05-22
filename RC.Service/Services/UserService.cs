@@ -30,6 +30,12 @@ namespace RC.Service.Services
             return MapUserToUserDto(userEntity);
         }
 
+        public async Task<UserDto?> GetByIdAsync(long id)
+        {
+            var user = await _userRepository.GetByIdAsync(id);
+            return MapUserToUserDto(user);
+        }
+
         private UserDto MapUserToUserDto(User user)
         {
             return new UserDto

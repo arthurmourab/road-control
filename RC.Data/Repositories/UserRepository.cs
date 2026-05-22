@@ -16,6 +16,7 @@ namespace RC.Data.Repositories
         public async Task<IEnumerable<User>> GetAllAsync(int currentPage, int pageSize)
         {
             return await _context.Set<User>()
+                .Include(u => u.Role)
                 .OrderBy(u => u.Id)
                 .Skip((currentPage - 1) * pageSize)
                 .Take(pageSize)
@@ -30,6 +31,7 @@ namespace RC.Data.Repositories
         public async Task<User?> GetByIdAsync(long id)
         {
             return await _context.Set<User>()
+                .Include(u => u.Role)
                 .Where(u => u.Id == id)
                 .FirstOrDefaultAsync();
         }
@@ -37,6 +39,7 @@ namespace RC.Data.Repositories
         public async Task<User?> GetByEmailAsync(string email)
         {
             return await _context.Set<User>()
+                .Include(u => u.Role)
                 .Where(u => u.Email == email)
                 .FirstOrDefaultAsync();
         }
@@ -52,8 +55,9 @@ namespace RC.Data.Repositories
         public async Task<User?> DeactivateByIdAsync(long id)
         {
             var user = await GetByIdAsync(id);
-            
-            user?.IsActive = false;
+
+            if (user is not null)
+                user.IsActive = false;
 
             await _context.SaveChangesAsync();
             return user;

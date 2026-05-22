@@ -22,9 +22,13 @@ namespace RC.Service.Extensions
 
             // Adição de serviços
             services.AddScoped<IVehicleService, VehicleService>();
+            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IAuthService, AuthService>();
 
             // Adição de repositórios
             services.AddScoped<IVehicleRepository, VehicleRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IRoleRepository, RoleRepository>();
 
             return services;
         }
