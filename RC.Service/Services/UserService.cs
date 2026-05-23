@@ -23,11 +23,11 @@ namespace RC.Service.Services
             };
         }
 
-        public async Task<UserDto> AddAsync(NewUserDto newUser)
+        public async Task<UserDto> AddAsync(NewUserDto newUserDto)
         {
-            var newUserEntity = MapNewUserDtoToUser(newUser);
-            var userEntity = await _userRepository.AddAsync(newUserEntity);
-            return MapUserToUserDto(userEntity);
+            var newUser = MapNewUserDtoToUser(newUserDto);
+            var user = await _userRepository.AddAsync(newUser);
+            return MapUserToUserDto(user);
         }
 
         public async Task<UserDto?> GetByIdAsync(long id)

@@ -49,7 +49,9 @@ namespace RC.Data.Repositories
             await _context.AddAsync(newUser);
             await _context.SaveChangesAsync();
 
-            return newUser;
+            return await _context.Set<User>()
+                .Include(u => u.Role)
+                .FirstAsync(u => u.Id == newUser.Id);
         }
 
         public async Task<User?> DeactivateByIdAsync(long id)

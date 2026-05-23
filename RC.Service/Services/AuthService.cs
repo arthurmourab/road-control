@@ -21,8 +21,8 @@ namespace RC.Service.Services
         {
             var user = await _userRepository.GetByEmailAsync(loginRequest.Email);
             
-                if (user is null || !BCrypt.Net.BCrypt.Verify(loginRequest.Password, user.PasswordHash))
-                    throw new UnauthorizedAccessException();
+            if (user is null || !BCrypt.Net.BCrypt.Verify(loginRequest.Password, user.PasswordHash))
+                throw new UnauthorizedAccessException();
 
             var jwtConfig = _configuration.GetSection("Jwt");
 
