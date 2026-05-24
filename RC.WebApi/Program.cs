@@ -1,7 +1,10 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using RC.Service.Extensions;
+using RC.Shared.Models.Results;
+using RC.WebApi.Middleware;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -12,7 +15,20 @@ builder.Services.AddServices(builder.Configuration);
 
 // Return Enums as string
 builder.Services.AddControllers()
-    .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+    .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()))
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            var errors = context.ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .First();
+
+            return new BadRequestObjectResult(ApiResponse<object>.Fail(errors));
+        };
+    });     
+
 
 builder.Services.AddSwaggerGen(options =>
 {
@@ -66,6 +82,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.MapControllers();
 

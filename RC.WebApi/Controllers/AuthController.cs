@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using RC.Domain.Interfaces.Services;
 using RC.Shared.Dtos.Authentication;
+using RC.Shared.Models.Results;
 
 namespace RC.WebApi.Controllers
 {
@@ -12,22 +13,8 @@ namespace RC.WebApi.Controllers
         [HttpPost]
         public async Task<IActionResult> LoginAsync([FromBody] LoginRequestDto loginRequest)
         {
-            try
-            {
-                var response = await _authService.LoginAsync(loginRequest);
-                return StatusCode(200, response);
-            }
-
-            catch (UnauthorizedAccessException)
-            {
-                return Unauthorized();
-            }
-
-            catch (Exception) 
-            {
-                return StatusCode(500, new { message = "Internal error" });
-            }
-            
+            var response = await _authService.LoginAsync(loginRequest);
+            return StatusCode(200, ApiResponse<LoginResponseDto>.Ok(response));
         }
     }
 }

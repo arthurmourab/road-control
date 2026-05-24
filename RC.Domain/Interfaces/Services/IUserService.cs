@@ -9,7 +9,7 @@ namespace RC.Domain.Interfaces.Services
     public interface IUserService
     {
         Task<PagedResult<UserDto>> GetAllAsync(int currentPage, int pageSize);
-        Task<UserDto?> GetByIdAsync(long id);
+        Task<UserDto> GetByIdAsync(long id);
         Task<UserDto> AddAsync(NewUserDto newUser);
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using RC.Domain.Interfaces.Services;
 using RC.Shared.Dtos.Vehicle;
+using RC.Shared.Models.Results;
 
 namespace RC.WebApi.Controllers
 {
@@ -13,31 +14,15 @@ namespace RC.WebApi.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllAsync([FromQuery] int currentPage = 1, int pageSize = 20)
         {
-
-            try
-            {
-                var response =  await _vehicleService.GetAllAsync(currentPage, pageSize);
-                return Ok(response);
-            }
-            catch (Exception)
-            {
-                return StatusCode(500);
-            }
-            
+            var response =  await _vehicleService.GetAllAsync(currentPage, pageSize);
+            return StatusCode(200, ApiResponse<PagedResult<VehicleDto>>.Ok(response));
         }
 
         [HttpPost]
         public async Task<IActionResult> AddNewAsync([FromBody] NewVehicleDto newVehicle)
         {
-            try
-            {
-                var response = await _vehicleService.AddNewAsync(newVehicle);
-                return StatusCode(201, response);
-            }
-            catch (Exception)
-            {
-                return StatusCode(500);
-            }
+            var response = await _vehicleService.AddNewAsync(newVehicle);
+            return StatusCode(201, ApiResponse<VehicleDto>.Ok(response));
         }
 
     }

@@ -1,4 +1,5 @@
 ﻿using RC.Domain.Entities;
+using RC.Domain.Exceptions;
 using RC.Domain.Interfaces.Repositories;
 using RC.Domain.Interfaces.Services;
 using RC.Shared.Dtos.User;
@@ -26,13 +27,17 @@ namespace RC.Service.Services
         public async Task<UserDto> AddAsync(NewUserDto newUserDto)
         {
             var newUser = MapNewUserDtoToUser(newUserDto);
+
+            var exists = await _userRepository.GetByEmailAsync(newUser.Email);
+            if (exists != null) throw new ConflictException("User already registred.");
+
             var user = await _userRepository.AddAsync(newUser);
             return MapUserToUserDto(user);
         }
 
-        public async Task<UserDto?> GetByIdAsync(long id)
+        public async Task<UserDto> GetByIdAsync(long id)
         {
-            var user = await _userRepository.GetByIdAsync(id);
+            var user = await _userRepository.GetByIdAsync(id) ?? throw new NotFoundException("User not found");
             return MapUserToUserDto(user);
         }
 
