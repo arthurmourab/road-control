@@ -13,6 +13,7 @@ namespace RC.Data.Database
         public DbSet<Vehicle> Vehicles { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<Organization> Organizations { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
