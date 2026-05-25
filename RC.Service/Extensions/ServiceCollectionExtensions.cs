@@ -24,11 +24,13 @@ namespace RC.Service.Extensions
             services.AddScoped<IVehicleService, VehicleService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IOrganizationService, OrganizationService>();
 
             // Adição de repositórios
             services.AddScoped<IVehicleRepository, VehicleRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IRoleRepository, RoleRepository>();
+            services.AddScoped<IOrganizationRepository, OrganizationRepository>();
 
             return services;
         }

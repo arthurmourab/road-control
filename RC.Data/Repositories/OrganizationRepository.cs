@@ -37,5 +37,12 @@ namespace RC.Data.Repositories
                 .Where(o => o.Id == id)
                 .FirstOrDefaultAsync();
         }
+
+        public async Task<Organization?> GetByDocumentAsync(string document)
+        {
+            return await _context.Set<Organization>()
+                .Where(o => o.Document == document)
+                .FirstOrDefaultAsync();
+        }
     }
 }

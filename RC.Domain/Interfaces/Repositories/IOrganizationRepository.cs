@@ -11,5 +11,6 @@ namespace RC.Domain.Interfaces.Repositories
         Task<IEnumerable<Organization>> GetAllAsync(int currentPage, int pageSize);
         Task<int> GetAllTotalAsync();
         Task<Organization?> GetByIdAsync(long id);
+        Task<Organization?> GetByDocumentAsync(string document);
     }
 }
