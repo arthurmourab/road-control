@@ -16,14 +16,16 @@ namespace RC.Data.Mappings
             builder.HasKey(u => u.Id);
 
             builder.Property(u => u.Id).ValueGeneratedOnAdd();
-            builder.Property(u => u.Name).HasColumnName("Name").IsRequired();
-            builder.Property(u => u.LastName).HasColumnName("LastName").IsRequired();
-            builder.Property(u => u.Email).HasColumnName("Email").IsRequired();
-            builder.Property(u => u.PasswordHash).HasColumnName("PasswordHash").IsRequired();
+            builder.Property(u => u.Name).HasColumnName("Name").HasMaxLength(100).IsRequired();
+            builder.Property(u => u.LastName).HasColumnName("LastName").HasMaxLength(100).IsRequired();
+            builder.Property(u => u.Email).HasColumnName("Email").HasMaxLength(255).IsRequired();
+            builder.Property(u => u.PasswordHash).HasColumnName("PasswordHash").HasMaxLength(500).IsRequired();
             builder.Property(u => u.RoleId).HasColumnName("RoleId").IsRequired();
             builder.Property(u => u.IsActive).HasColumnName("IsActive").IsRequired();
             builder.Property(u => u.CreatedAt).HasColumnName("CreatedAt").IsRequired();
             builder.Property(u => u.UpdatedAt).HasColumnName("UpdatedAt");
+
+            builder.HasIndex(u => u.Email).IsUnique();
 
             builder.HasOne(u => u.Role)
                 .WithMany()

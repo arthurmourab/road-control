@@ -16,8 +16,8 @@ namespace RC.Data.Mappings
             builder.HasKey(r => r.Id);
 
             builder.Property(r => r.Id).ValueGeneratedOnAdd();
-            builder.Property(r => r.Name).HasColumnName("Name").IsRequired();
-            builder.Property(r => r.Description).HasColumnName("Description").IsRequired();
+            builder.Property(r => r.Name).HasColumnName("Name").HasMaxLength(100).IsRequired();
+            builder.Property(r => r.Description).HasColumnName("Description").HasMaxLength(255).IsRequired();
             builder.Property(r => r.CreatedAt).HasColumnName("CreatedAt").IsRequired();
             builder.Property(r => r.UpdatedAt).HasColumnName("UpdatedAt");
         }

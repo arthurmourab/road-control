@@ -13,8 +13,8 @@ namespace RC.Data.Mappings
             builder.HasKey(o => o.Id);
 
             builder.Property(o => o.Id).ValueGeneratedOnAdd();
-            builder.Property(o => o.Name).HasColumnName("Name").IsRequired();
-            builder.Property(o => o.Document).HasColumnName("Document").IsRequired();
+            builder.Property(o => o.Name).HasColumnName("Name").HasMaxLength(255).IsRequired();
+            builder.Property(o => o.Document).HasColumnName("Document").HasMaxLength(14).IsRequired();
             builder.Property(o => o.IsActive).HasColumnName("IsActive").IsRequired();
             builder.Property(o => o.CreatedAt).HasColumnName("CreatedAt").IsRequired();
             builder.Property(o => o.UpdatedAt).HasColumnName("UpdatedAt");

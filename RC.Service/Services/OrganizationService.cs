@@ -1,14 +1,9 @@
-﻿using RC.Data.Repositories;
-using RC.Domain.Entities;
+﻿using RC.Domain.Entities;
 using RC.Domain.Exceptions;
 using RC.Domain.Interfaces.Repositories;
 using RC.Domain.Interfaces.Services;
 using RC.Shared.Dtos.Organization;
-using RC.Shared.Dtos.User;
 using RC.Shared.Models.Results;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace RC.Service.Services
 {

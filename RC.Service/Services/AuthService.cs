@@ -4,8 +4,6 @@ using RC.Domain.Entities;
 using RC.Domain.Interfaces.Repositories;
 using RC.Domain.Interfaces.Services;
 using RC.Shared.Dtos.Authentication;
-using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
