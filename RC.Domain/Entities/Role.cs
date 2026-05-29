@@ -14,6 +14,9 @@ namespace RC.Domain.Entities
             public const string OrganizationAdmin = "OrganizationAdmin";
             public const string Driver = "Driver";
             public const string GasStationAttendant = "GasStationAttendant";
+
+            // Perfis autorizados a registrar abastecimentos
+            public const string FuelingManagers = $"{Driver},{OrganizationAdmin},{SystemAdmin}";
         }
     }
 }

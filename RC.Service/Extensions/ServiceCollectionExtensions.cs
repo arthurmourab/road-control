@@ -25,12 +25,16 @@ namespace RC.Service.Extensions
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IOrganizationService, OrganizationService>();
+            services.AddScoped<IGasStationService, GasStationService>();
+            services.AddScoped<IFuelingService, FuelingService>();
 
             // Adição de repositórios
             services.AddScoped<IVehicleRepository, VehicleRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IRoleRepository, RoleRepository>();
             services.AddScoped<IOrganizationRepository, OrganizationRepository>();
+            services.AddScoped<IGasStationRepository, GasStationRepository>();
+            services.AddScoped<IFuelingRepository, FuelingRepository>();
 
             return services;
         }

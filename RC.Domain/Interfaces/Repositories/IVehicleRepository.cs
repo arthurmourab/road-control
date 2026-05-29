@@ -10,5 +10,6 @@ namespace RC.Domain.Interfaces.Repositories
         Task<IEnumerable<Vehicle>> GetAllAsync(int currentPage, int pageSize);
         Task<int> GetAllTotalAsync();
         Task<Vehicle> AddNewAsync(Vehicle newVehicle);
+        Task<Vehicle?> GetByIdAsync(long id);
     }
 }

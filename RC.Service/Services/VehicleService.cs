@@ -1,4 +1,5 @@
 ﻿using RC.Domain.Entities;
+using RC.Domain.Exceptions;
 using RC.Domain.Interfaces.Repositories;
 using RC.Domain.Interfaces.Services;
 using RC.Shared.Dtos.Vehicle;
@@ -6,9 +7,12 @@ using RC.Shared.Models.Results;
 
 namespace RC.Service.Services
 {
-    public class VehicleService(IVehicleRepository vehicleRepository) : IVehicleService
+    public class VehicleService(
+        IVehicleRepository vehicleRepository,
+        IOrganizationRepository organizationRepository) : IVehicleService
     {
         private readonly IVehicleRepository _vehicleRepository = vehicleRepository;
+        private readonly IOrganizationRepository _organizationRepository = organizationRepository;
 
         public async Task<PagedResult<VehicleDto>> GetAllAsync(int currentPage, int pageSize)
         {
@@ -26,6 +30,9 @@ namespace RC.Service.Services
 
         public async Task<VehicleDto> AddNewAsync(NewVehicleDto newVehicleDto)
         {
+            _ = await _organizationRepository.GetByIdAsync(newVehicleDto.OrganizationId)
+                ?? throw new NotFoundException("Organization not found");
+
             var newVehicle = MapNewVehicleDtoToEntity(newVehicleDto);
 
             var insertedVehicle = await _vehicleRepository.AddNewAsync(newVehicle);
@@ -49,6 +56,7 @@ namespace RC.Service.Services
                 IsActive = vehicle.IsActive,
                 CreatedAt = vehicle.CreatedAt,
                 UpdatedAt = vehicle.UpdatedAt,
+                OrganizationId = vehicle.OrganizationId,
             };
         }
 
@@ -64,6 +72,7 @@ namespace RC.Service.Services
                 YearModel = vehicle.YearModel,
                 Mileage = vehicle.Mileage,
                 IsActive = true,
+                OrganizationId = vehicle.OrganizationId,
             };
         }
 
@@ -79,6 +88,7 @@ namespace RC.Service.Services
                 YearModel = vehicle.YearModel,
                 Mileage = vehicle.Mileage,
                 IsActive = vehicle.IsActive ?? true,
+                OrganizationId = vehicle.OrganizationId,
             };
         }
 
@@ -97,7 +107,8 @@ namespace RC.Service.Services
                 Mileage = v.Mileage,
                 IsActive = v.IsActive,
                 CreatedAt = v.CreatedAt,
-                UpdatedAt= v.UpdatedAt
+                UpdatedAt= v.UpdatedAt,
+                OrganizationId = v.OrganizationId
             }).ToList();
         }
 
@@ -113,6 +124,7 @@ namespace RC.Service.Services
                 YearModel = v.YearModel,
                 Mileage = v.Mileage,
                 IsActive = v.IsActive ?? true,
+                OrganizationId = v.OrganizationId,
             }).ToList();
         }
     }

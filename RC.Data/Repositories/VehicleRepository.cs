@@ -36,6 +36,12 @@ namespace RC.Data.Repositories
             return newVehicle;
         }
 
+        public async Task<Vehicle?> GetByIdAsync(long id)
+        {
+            return await _context.Set<Vehicle>()
+                .FirstOrDefaultAsync(v => v.Id == id);
+        }
+
 
     }
 }

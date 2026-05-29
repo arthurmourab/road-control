@@ -26,6 +26,7 @@ namespace RC.WebApi.Middleware
             {
                 NotFoundException => (StatusCodes.Status404NotFound, ex.Message),
                 ConflictException => (StatusCodes.Status409Conflict, ex.Message),
+                BusinessRuleException => (StatusCodes.Status422UnprocessableEntity, ex.Message),
                 UnauthorizedAccessException => (StatusCodes.Status401Unauthorized, ex.Message),
                 _ => (StatusCodes.Status500InternalServerError, "Internal Error.")
             };

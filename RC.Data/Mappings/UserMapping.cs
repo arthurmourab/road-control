@@ -24,12 +24,18 @@ namespace RC.Data.Mappings
             builder.Property(u => u.IsActive).HasColumnName("IsActive").IsRequired();
             builder.Property(u => u.CreatedAt).HasColumnName("CreatedAt").IsRequired();
             builder.Property(u => u.UpdatedAt).HasColumnName("UpdatedAt");
+            builder.Property(u => u.OrganizationId).HasColumnName("OrganizationId");
 
             builder.HasIndex(u => u.Email).IsUnique();
 
             builder.HasOne(u => u.Role)
                 .WithMany()
                 .HasForeignKey(u => u.RoleId);
+
+            builder.HasOne(u => u.Organization)
+                .WithMany()
+                .HasForeignKey(u => u.OrganizationId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

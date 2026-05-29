@@ -26,8 +26,14 @@ namespace RC.Data.Mappings
             builder.Property(v => v.IsActive).HasColumnName("IsActive").IsRequired();
             builder.Property(v => v.CreatedAt).HasColumnName("CreatedAt").IsRequired();
             builder.Property(v => v.UpdatedAt).HasColumnName("UpdatedAt");
+            builder.Property(v => v.OrganizationId).HasColumnName("OrganizationId").IsRequired();
 
             builder.HasIndex(v => v.Plate).IsUnique();
+
+            builder.HasOne(v => v.Organization)
+                .WithMany()
+                .HasForeignKey(v => v.OrganizationId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

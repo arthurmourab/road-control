@@ -7,9 +7,12 @@ using RC.Shared.Models.Results;
 
 namespace RC.Service.Services
 {
-    public class UserService(IUserRepository userRepository) : IUserService
+    public class UserService(
+        IUserRepository userRepository,
+        IOrganizationRepository organizationRepository) : IUserService
     {
         private readonly IUserRepository _userRepository = userRepository;
+        private readonly IOrganizationRepository _organizationRepository = organizationRepository;
         public async Task<PagedResult<UserDto>> GetAllAsync(int currentPage, int pageSize)
         {
             var users = await _userRepository.GetAllAsync(currentPage, pageSize);
@@ -26,6 +29,12 @@ namespace RC.Service.Services
 
         public async Task<UserDto> AddAsync(NewUserDto newUserDto)
         {
+            if (newUserDto.OrganizationId.HasValue)
+            {
+                _ = await _organizationRepository.GetByIdAsync(newUserDto.OrganizationId.Value)
+                    ?? throw new NotFoundException("Organization not found");
+            }
+
             var newUser = MapNewUserDtoToUser(newUserDto);
 
             var exists = await _userRepository.GetByEmailAsync(newUser.Email);
@@ -52,7 +61,8 @@ namespace RC.Service.Services
                 LastName = user.LastName,
                 Email = user.Email,
                 IsActive = user.IsActive,
-                Role = user.Role.Name
+                Role = user.Role.Name,
+                OrganizationId = user.OrganizationId
             };
         }
 
@@ -66,6 +76,7 @@ namespace RC.Service.Services
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(newUser.Password),
                 IsActive = true, // Novos usuários são sempre ativos
                 RoleId = newUser.RoleId,
+                OrganizationId = newUser.OrganizationId,
             };
         }
 
@@ -80,7 +91,8 @@ namespace RC.Service.Services
                 LastName = u.LastName,
                 Email = u.Email,
                 IsActive = u.IsActive,
-                Role = u.Role.Name
+                Role = u.Role.Name,
+                OrganizationId = u.OrganizationId
             }).ToList();
         }
     }

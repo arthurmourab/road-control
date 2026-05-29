@@ -18,5 +18,6 @@ namespace RC.Shared.Dtos.Vehicle
         public int YearModel { get; set; }
         public int Mileage { get; set; }
         public bool? IsActive { get; set; } = true;
+        public long OrganizationId { get; set; }
     }
 }

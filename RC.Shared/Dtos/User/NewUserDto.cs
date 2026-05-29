@@ -14,5 +14,8 @@ namespace RC.Shared.Dtos.User
         public string Email { get; set; }
         public string Password { get; set; }
         public long RoleId { get; set; }
+
+        // Opcional — SystemAdmin não pertence a nenhuma organização
+        public long? OrganizationId { get; set; }
     }
 }

@@ -1,7 +1,5 @@
 ﻿using RC.Shared.Enums;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using System.ComponentModel.DataAnnotations;
 
 namespace RC.Shared.Dtos.Vehicle
 {
@@ -14,5 +12,8 @@ namespace RC.Shared.Dtos.Vehicle
         public int YearManufacture { get; set; }
         public int YearModel { get; set; }
         public int Mileage { get; set; }
+
+        [Range(1, long.MaxValue)]
+        public long OrganizationId { get; set; }
     }
 }

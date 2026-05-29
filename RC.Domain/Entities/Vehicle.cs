@@ -15,5 +15,9 @@ namespace RC.Domain.Entities
         public int YearModel { get; set; }
         public int Mileage {  get; set; }
         public bool IsActive { get; set; }
+
+        // Organização dona do veículo (obrigatório)
+        public long OrganizationId { get; set; }
+        public Organization Organization { get; set; }
     }
 }

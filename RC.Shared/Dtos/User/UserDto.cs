@@ -15,5 +15,6 @@ namespace RC.Shared.Dtos.User
         public string Email { get; set; }
         public bool IsActive { get; set; }
         public string Role { get; set; }
+        public long? OrganizationId { get; set; }
     }
 }

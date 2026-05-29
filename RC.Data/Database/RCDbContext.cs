@@ -14,6 +14,9 @@ namespace RC.Data.Database
         public DbSet<Role> Roles { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<Organization> Organizations { get; set; }
+        public DbSet<GasStation> GasStations { get; set; }
+        public DbSet<OrganizationGasStation> OrganizationGasStations { get; set; }
+        public DbSet<Fueling> Fuelings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

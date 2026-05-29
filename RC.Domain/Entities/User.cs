@@ -13,5 +13,9 @@ namespace RC.Domain.Entities
         public bool IsActive { get; set; }
         public long RoleId { get; set; }
         public Role Role { get; set; }
+
+        // Organização à qual o usuário pertence (opcional — SystemAdmin não pertence a nenhuma)
+        public long? OrganizationId { get; set; }
+        public Organization Organization { get; set; }
     }
 }
