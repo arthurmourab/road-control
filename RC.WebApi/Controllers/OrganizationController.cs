@@ -21,6 +21,9 @@ namespace RC.WebApi.Controllers
             return StatusCode(201, ApiResponse<OrganizationDto>.Ok(response));
         }
 
+        // Só a administração da plataforma enxerga a carteira de organizações;
+        // usuários de organização obtêm os dados da própria org via /v1/auth/me
+        [Authorize(Roles = Role.Roles.SystemAdmin)]
         [HttpGet]
         public async Task<IActionResult> GetAllAsync([FromQuery] int currentPage = 1, int pageSize = 20)
         {
@@ -28,6 +31,7 @@ namespace RC.WebApi.Controllers
             return StatusCode(200, ApiResponse<PagedResult<OrganizationDto>>.Ok(response));
         }
 
+        [Authorize(Roles = Role.Roles.SystemAdmin)]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetByIdAsync([FromRoute] long id)
         {

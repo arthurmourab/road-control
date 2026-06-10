@@ -14,18 +14,21 @@ namespace RC.Data.Repositories
     {
         private readonly RCDbContext _context = context;
 
-        public async Task<IEnumerable<Vehicle>> GetAllAsync(int currentPage, int pageSize)
+        public async Task<IEnumerable<Vehicle>> GetAllAsync(int currentPage, int pageSize, long? organizationId = null)
         {
             return await _context.Set<Vehicle>()
+                .Where(v => organizationId == null || v.OrganizationId == organizationId)
                 .OrderBy(x => x.Id)
                 .Skip((currentPage - 1) * pageSize)
                 .Take(pageSize)
-                .ToListAsync();           
+                .ToListAsync();
         }
 
-        public async Task<int> GetAllTotalAsync()
+        public async Task<int> GetAllTotalAsync(long? organizationId = null)
         {
-            return await _context.Set<Vehicle>().CountAsync();
+            return await _context.Set<Vehicle>()
+                .Where(v => organizationId == null || v.OrganizationId == organizationId)
+                .CountAsync();
         }
 
         public async Task<Vehicle> AddNewAsync(Vehicle newVehicle)
@@ -40,6 +43,18 @@ namespace RC.Data.Repositories
         {
             return await _context.Set<Vehicle>()
                 .FirstOrDefaultAsync(v => v.Id == id);
+        }
+
+        public async Task<Vehicle?> GetByPlateAsync(string plate)
+        {
+            return await _context.Set<Vehicle>()
+                .FirstOrDefaultAsync(v => v.Plate == plate);
+        }
+
+        public async Task UpdateAsync(Vehicle vehicle)
+        {
+            _context.Update(vehicle);
+            await _context.SaveChangesAsync();
         }
 
 

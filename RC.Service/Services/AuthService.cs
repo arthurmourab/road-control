@@ -18,8 +18,10 @@ namespace RC.Service.Services
         public async Task<LoginResponseDto> LoginAsync(LoginRequestDto loginRequest)
         {
             var user = await _userRepository.GetByEmailAsync(loginRequest.Email);
-            
-            if (user is null || !BCrypt.Net.BCrypt.Verify(loginRequest.Password, user.PasswordHash))
+
+            // Usuário inexistente, inativo ou senha incorreta: mesma resposta genérica,
+            // para não revelar a um atacante se a conta existe
+            if (user is null || !user.IsActive || !BCrypt.Net.BCrypt.Verify(loginRequest.Password, user.PasswordHash))
                 throw new UnauthorizedAccessException();
 
             var jwtConfig = _configuration.GetSection("Jwt");

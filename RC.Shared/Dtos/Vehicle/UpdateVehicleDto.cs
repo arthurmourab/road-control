@@ -1,9 +1,9 @@
-﻿using RC.Shared.Enums;
+using RC.Shared.Enums;
 using System.ComponentModel.DataAnnotations;
 
 namespace RC.Shared.Dtos.Vehicle
 {
-    public class NewVehicleDto
+    public class UpdateVehicleDto
     {
         public VehicleTypeEnum Type { get; set; }
 
@@ -27,8 +27,5 @@ namespace RC.Shared.Dtos.Vehicle
 
         [Range(0, int.MaxValue)]
         public int Mileage { get; set; }
-
-        [Range(1, long.MaxValue)]
-        public long OrganizationId { get; set; }
     }
 }

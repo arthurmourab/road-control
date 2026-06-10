@@ -35,6 +35,13 @@ namespace RC.WebApi.Controllers
             return StatusCode(200, ApiResponse<GasStationDto>.Ok(response));
         }
 
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateAsync([FromRoute] long id, [FromBody] UpdateGasStationDto updateGasStationDto)
+        {
+            var response = await _gasStationService.UpdateAsync(id, updateGasStationDto);
+            return StatusCode(200, ApiResponse<GasStationDto>.Ok(response));
+        }
+
         [HttpPost("{id}/organizations")]
         public async Task<IActionResult> LinkOrganizationsAsync([FromRoute] long id, [FromBody] LinkOrganizationsDto linkOrganizationsDto)
         {

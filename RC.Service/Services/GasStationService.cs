@@ -45,6 +45,24 @@ namespace RC.Service.Services
             return MapGasStationToDto(gasStation);
         }
 
+        public async Task<GasStationDto> UpdateAsync(long id, UpdateGasStationDto updateGasStationDto)
+        {
+            var gasStation = await _gasStationRepository.GetByIdAsync(id) ?? throw new NotFoundException("Gas station not found");
+
+            gasStation.Name = updateGasStationDto.Name;
+            gasStation.IsGlobal = updateGasStationDto.IsGlobal;
+            gasStation.IsActive = updateGasStationDto.IsActive;
+            gasStation.Street = updateGasStationDto.Street;
+            gasStation.Number = updateGasStationDto.Number;
+            gasStation.Neighborhood = updateGasStationDto.Neighborhood;
+            gasStation.City = updateGasStationDto.City;
+            gasStation.State = updateGasStationDto.State;
+            gasStation.ZipCode = updateGasStationDto.ZipCode;
+
+            await _gasStationRepository.UpdateAsync(gasStation);
+            return MapGasStationToDto(gasStation);
+        }
+
         public async Task<GasStationDto> LinkOrganizationsAsync(long gasStationId, IEnumerable<long> organizationIds)
         {
             var gasStation = await _gasStationRepository.GetByIdAsync(gasStationId) ?? throw new NotFoundException("Gas station not found");

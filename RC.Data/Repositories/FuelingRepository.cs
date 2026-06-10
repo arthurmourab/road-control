@@ -17,18 +17,31 @@ namespace RC.Data.Repositories
             return newFueling;
         }
 
-        public async Task<IEnumerable<Fueling>> GetAllAsync(int currentPage, int pageSize)
+        public async Task<IEnumerable<Fueling>> GetAllAsync(int currentPage, int pageSize,
+            long? organizationId = null, long? vehicleId = null, DateTime? from = null, DateTime? to = null)
         {
-            return await _context.Set<Fueling>()
+            return await ApplyFilters(_context.Set<Fueling>(), organizationId, vehicleId, from, to)
                 .OrderByDescending(f => f.FueledAt)
                 .Skip((currentPage - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
         }
 
-        public async Task<int> GetAllTotalAsync()
+        public async Task<int> GetAllTotalAsync(long? organizationId = null, long? vehicleId = null,
+            DateTime? from = null, DateTime? to = null)
         {
-            return await _context.Set<Fueling>().CountAsync();
+            return await ApplyFilters(_context.Set<Fueling>(), organizationId, vehicleId, from, to)
+                .CountAsync();
+        }
+
+        private static IQueryable<Fueling> ApplyFilters(IQueryable<Fueling> query,
+            long? organizationId, long? vehicleId, DateTime? from, DateTime? to)
+        {
+            return query
+                .Where(f => organizationId == null || f.OrganizationId == organizationId)
+                .Where(f => vehicleId == null || f.VehicleId == vehicleId)
+                .Where(f => from == null || f.FueledAt >= from)
+                .Where(f => to == null || f.FueledAt <= to);
         }
 
         public async Task<Fueling?> GetByIdAsync(long id)

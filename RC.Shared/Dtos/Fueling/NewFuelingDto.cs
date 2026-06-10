@@ -17,9 +17,15 @@ namespace RC.Shared.Dtos.Fueling
 
         public FuelTypeEnum FuelType { get; set; }
 
+        [Range(0.001, 99999.999)]
         public decimal Liters { get; set; }
+
+        [Range(0.001, 999999.999)]
         public decimal PricePerLiter { get; set; }
+
+        [Range(0, int.MaxValue)]
         public int Mileage { get; set; }
+
         public DateTime FueledAt { get; set; }
     }
 }

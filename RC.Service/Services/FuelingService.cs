@@ -69,10 +69,14 @@ namespace RC.Service.Services
             return MapFuelingToDto(inserted);
         }
 
-        public async Task<PagedResult<FuelingDto>> GetAllAsync(int currentPage, int pageSize)
+        public async Task<PagedResult<FuelingDto>> GetAllAsync(int currentPage, int pageSize,
+            long currentUserId, string? currentUserRole,
+            long? organizationId, long? vehicleId, DateTime? from, DateTime? to)
         {
-            var fuelings = await _fuelingRepository.GetAllAsync(currentPage, pageSize);
-            var total = await _fuelingRepository.GetAllTotalAsync();
+            var scopeOrganizationId = await ResolveOrganizationScopeAsync(currentUserId, currentUserRole, organizationId);
+
+            var fuelings = await _fuelingRepository.GetAllAsync(currentPage, pageSize, scopeOrganizationId, vehicleId, from, to);
+            var total = await _fuelingRepository.GetAllTotalAsync(scopeOrganizationId, vehicleId, from, to);
 
             return new PagedResult<FuelingDto>
             {
@@ -87,6 +91,23 @@ namespace RC.Service.Services
         {
             var fueling = await _fuelingRepository.GetByIdAsync(id) ?? throw new NotFoundException("Fueling not found");
             return MapFuelingToDto(fueling);
+        }
+
+        // Resolve o escopo de organização do chamador:
+        // SystemAdmin enxerga tudo (podendo filtrar por uma organização específica);
+        // os demais papéis ficam restritos à própria organização.
+        private async Task<long?> ResolveOrganizationScopeAsync(long currentUserId, string? currentUserRole, long? requestedOrganizationId)
+        {
+            if (currentUserRole == Role.Roles.SystemAdmin)
+                return requestedOrganizationId;
+
+            var currentUser = await _userRepository.GetByIdAsync(currentUserId)
+                ?? throw new NotFoundException("Current user not found");
+
+            if (!currentUser.OrganizationId.HasValue)
+                throw new BusinessRuleException("User must belong to an organization.");
+
+            return currentUser.OrganizationId;
         }
 
         private static long ResolveDriverId(NewFuelingDto dto, long currentUserId, string? currentUserRole)

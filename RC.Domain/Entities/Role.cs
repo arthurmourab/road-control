@@ -17,6 +17,9 @@ namespace RC.Domain.Entities
 
             // Perfis autorizados a registrar abastecimentos
             public const string FuelingManagers = $"{Driver},{OrganizationAdmin},{SystemAdmin}";
+
+            // Perfis autorizados a cadastrar usuários
+            public const string UserManagers = $"{OrganizationAdmin},{SystemAdmin}";
         }
     }
 }

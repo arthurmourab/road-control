@@ -19,6 +19,29 @@ builder.Services.AddServices(builder.Configuration);
 // Força todas as URLs de rota a serem geradas em letras minúsculas (ex: /v1/user em vez de /v1/User)
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 
+// Configura o CORS para permitir que o frontend (servido em outra origem) consuma a API
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("Frontend", policy =>
+    {
+        if (builder.Environment.IsDevelopment())
+        {
+            // Em desenvolvimento, libera qualquer origem local (localhost/127.0.0.1 em qualquer porta)
+            policy.SetIsOriginAllowed(origin => new Uri(origin).IsLoopback)
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        }
+        else
+        {
+            // Em produção, libera apenas as origens configuradas em Cors:AllowedOrigins no appsettings
+            var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+            policy.WithOrigins(allowedOrigins)
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        }
+    });
+});
+
 // Registra os controllers da aplicação e encadeia configurações adicionais
 builder.Services.AddControllers()
     // Faz com que enums sejam serializados como string no JSON (ex: "Car" em vez de 0)
@@ -91,6 +114,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 // Constrói a aplicação com todos os serviços registrados acima
 var app = builder.Build();
+
+// Aplica a política de CORS — deve vir antes da autenticação/autorização
+app.UseCors("Frontend");
 
 // Adiciona o middleware de autenticação ao pipeline — identifica quem é o usuário (lê e valida o JWT)
 app.UseAuthentication();

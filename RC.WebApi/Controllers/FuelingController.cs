@@ -4,7 +4,7 @@ using RC.Domain.Entities;
 using RC.Domain.Interfaces.Services;
 using RC.Shared.Dtos.Fueling;
 using RC.Shared.Models.Results;
-using System.Security.Claims;
+using RC.WebApi.Extensions;
 
 namespace RC.WebApi.Controllers
 {
@@ -18,17 +18,20 @@ namespace RC.WebApi.Controllers
         [HttpPost]
         public async Task<IActionResult> RegisterAsync([FromBody] NewFuelingDto newFuelingDto)
         {
-            var currentUserId = GetCurrentUserId();
-            var currentUserRole = User.FindFirstValue(ClaimTypes.Role) ?? User.FindFirstValue("role");
-
-            var response = await _fuelingService.RegisterAsync(newFuelingDto, currentUserId, currentUserRole);
+            var response = await _fuelingService.RegisterAsync(newFuelingDto, User.GetUserId(), User.GetRole());
             return StatusCode(201, ApiResponse<FuelingDto>.Ok(response));
         }
 
+        // O service restringe a listagem à organização do chamador
+        // (SystemAdmin enxerga tudo e pode filtrar via ?organizationId=).
+        // Filtros opcionais: ?vehicleId=, ?from=, ?to= (período do abastecimento)
         [HttpGet]
-        public async Task<IActionResult> GetAllAsync([FromQuery] int currentPage = 1, int pageSize = 20)
+        public async Task<IActionResult> GetAllAsync([FromQuery] int currentPage = 1, int pageSize = 20,
+            [FromQuery] long? organizationId = null, [FromQuery] long? vehicleId = null,
+            [FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null)
         {
-            var response = await _fuelingService.GetAllAsync(currentPage, pageSize);
+            var response = await _fuelingService.GetAllAsync(currentPage, pageSize,
+                User.GetUserId(), User.GetRole(), organizationId, vehicleId, from, to);
             return StatusCode(200, ApiResponse<PagedResult<FuelingDto>>.Ok(response));
         }
 
@@ -37,16 +40,6 @@ namespace RC.WebApi.Controllers
         {
             var response = await _fuelingService.GetByIdAsync(id);
             return StatusCode(200, ApiResponse<FuelingDto>.Ok(response));
-        }
-
-        // Extrai o id do usuário autenticado do token (claim 'sub' / NameIdentifier)
-        private long GetCurrentUserId()
-        {
-            var sub = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
-            if (!long.TryParse(sub, out var userId))
-                throw new UnauthorizedAccessException("Invalid token: missing user id.");
-
-            return userId;
         }
     }
 }

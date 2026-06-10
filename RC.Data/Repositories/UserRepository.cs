@@ -13,19 +13,22 @@ namespace RC.Data.Repositories
     {
         private readonly RCDbContext _context = context;
 
-        public async Task<IEnumerable<User>> GetAllAsync(int currentPage, int pageSize)
+        public async Task<IEnumerable<User>> GetAllAsync(int currentPage, int pageSize, long? organizationId = null)
         {
             return await _context.Set<User>()
                 .Include(u => u.Role)
+                .Where(u => organizationId == null || u.OrganizationId == organizationId)
                 .OrderBy(u => u.Id)
                 .Skip((currentPage - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
         }
 
-        public async Task<int> GetAllTotalAsync()
+        public async Task<int> GetAllTotalAsync(long? organizationId = null)
         {
-            return await _context.Set<User>().CountAsync();
+            return await _context.Set<User>()
+                .Where(u => organizationId == null || u.OrganizationId == organizationId)
+                .CountAsync();
         }
 
         public async Task<User?> GetByIdAsync(long id)
@@ -63,6 +66,12 @@ namespace RC.Data.Repositories
 
             await _context.SaveChangesAsync();
             return user;
+        }
+
+        public async Task UpdateAsync(User user)
+        {
+            _context.Update(user);
+            await _context.SaveChangesAsync();
         }
     }
 }
