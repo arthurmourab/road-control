@@ -97,6 +97,11 @@ namespace RC.Service.Services
             if (scopeOrganizationId.HasValue && user.OrganizationId != scopeOrganizationId.Value)
                 throw new NotFoundException("User not found");
 
+            // OrganizationAdmin só altera o status de motoristas (nunca de outros admins nem o próprio).
+            // Aqui o alvo já é comprovadamente da mesma organização, então 422 não revela nada novo.
+            if (currentUserRole != Role.Roles.SystemAdmin && user.Role.Name != Role.Roles.Driver)
+                throw new BusinessRuleException("Organization admins can only change the status of drivers.");
+
             user.IsActive = isActive;
             await _userRepository.UpdateAsync(user);
 
