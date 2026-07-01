@@ -139,6 +139,12 @@ Ao criar um módulo novo (ex.: "Posto", "Abastecimento"), siga esta ordem para r
 
 ---
 
+## Mensagens de commit
+
+Ao gerar mensagens de commit, siga as instruções em [`.claude/commit.md`](.claude/commit.md).
+
+---
+
 ## Comandos úteis
 
 ```bash

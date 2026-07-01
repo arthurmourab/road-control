@@ -15,4 +15,5 @@ RC.Shared/obj
 RC.WebApi/bin
 RC.WebApi/obj
 
-.claude
+# Config pessoal do Claude Code — o restante da pasta .claude é versionado
+.claude/settings.local.json
