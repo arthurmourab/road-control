@@ -61,8 +61,9 @@ Controller  →  IService  →  IRepository  →  RCDbContext (EF Core)
   ```
 - **Registro de DI:** todo service e repositório novo é registrado como `Scoped` em
   `RC.Service/Extensions/ServiceCollectionExtensions.cs` (`AddServices`). Não registre no `Program.cs`.
-- **DTOs:** entrada de criação usa o prefixo `New` (`NewOrganizationDto`); leitura/saída usa o
-  nome simples (`OrganizationDto`). Entidades **nunca** são expostas direto pela API.
+- **DTOs:** entrada de criação usa o prefixo `New` (`NewOrganizationDto`); entrada de atualização
+  usa o prefixo `Update` (`UpdateVehicleDto`, `UpdateStatusDto`); leitura/saída usa o nome simples
+  (`OrganizationDto`). Entidades **nunca** são expostas direto pela API.
 - **Mapeamento é manual** (sem AutoMapper), feito por métodos privados no service:
   `MapXToXDto`, `MapNewXDtoToX`, e a versão de lista. Mantenha esse padrão.
 - **Async em toda I/O:** métodos de repositório/service terminam em `Async` e retornam `Task`.
@@ -83,6 +84,8 @@ Controller  →  IService  →  IRepository  →  RCDbContext (EF Core)
   lança; o controller **não tem try/catch**.
   - `NotFoundException` → 404
   - `ConflictException` → 409
+  - `BusinessRuleException` → 422
+  - `UnauthorizedAccessException` → 401
   - O `ExceptionHandlingMiddleware` (em `RC.WebApi/Middleware`) converte a exceção na resposta
     HTTP padronizada. Ao criar um novo tipo de erro, crie a exceção em `RC.Domain/Exceptions`
     e trate-a nesse middleware.
@@ -95,9 +98,19 @@ Controller  →  IService  →  IRepository  →  RCDbContext (EF Core)
 
 - Autenticação via **JWT Bearer** (configuração na seção `Jwt` do `appsettings`).
 - Os papéis ficam centralizados em constantes em `Role.Roles`
-  (`SystemAdmin`, `OrganizationAdmin`, `Driver`, `GasStationAttendant`).
+  (`SystemAdmin`, `OrganizationAdmin`, `Driver`, `GasStationAttendant`). Combinações de papéis
+  também viram constantes ali (`FuelingManagers`, `UserManagers`) — ao autorizar um grupo de
+  papéis, crie/reuse a constante composta em vez de concatenar strings no controller.
 - Proteja endpoints com `[Authorize(Roles = Role.Roles.SystemAdmin)]` — **sempre via a
   constante**, nunca com string literal.
+- **Isolamento por organização:** usuários pertencem a uma organização (`User.OrganizationId`,
+  nulo para SystemAdmin). O padrão é: o controller extrai o chamador do JWT via
+  `User.GetUserId()` / `User.GetRole()` (`RC.WebApi/Extensions/ClaimsPrincipalExtensions.cs`)
+  e repassa ao service, que **restringe a consulta/operação à organização do chamador**.
+  SystemAdmin enxerga tudo e pode filtrar via query string `?organizationId=`. Todo endpoint
+  novo que toque dados de organização deve seguir esse padrão.
+- **CORS:** política `Frontend` no `Program.cs` — em desenvolvimento libera qualquer origem
+  loopback; em produção libera apenas as origens da seção `Cors:AllowedOrigins` do `appsettings`.
 
 ---
 
@@ -142,4 +155,7 @@ dotnet run --project RC.WebApi    # subir a API (Swagger abre em ambiente Develo
 > (`dotnet ef migrations ...`).
 >
 > O schema canônico do banco fica em [`db/schema.sql`](db/schema.sql) (DDL completo, schema
-> `rc`). **Mantenha-o sincronizado** sempre que alterar uma entidade ou mapping.
+> `rc`). **Mantenha-o sincronizado** sempre que alterar uma entidade ou mapping. Alterações
+> incrementais de schema são registradas como scripts datados em `db/changes/`
+> (ex.: `2026-05-29-cria-postos.sql`) — ao alterar o schema, crie o script da mudança ali
+> **e** atualize o `schema.sql`.
