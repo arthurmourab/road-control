@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using RC.Domain.Entities;
+using RC.Domain.Exceptions;
 using RC.Domain.Interfaces.Repositories;
 using RC.Domain.Interfaces.Services;
 using RC.Shared.Dtos.Authentication;
@@ -14,6 +15,10 @@ namespace RC.Service.Services
     {
         private readonly IUserRepository _userRepository = userRepository;
         private readonly IConfiguration _configuration = configuration;
+
+        // TODO: substituir por fluxo de e-mail — reset provisório define a senha como "admin"
+        // enquanto não existe o serviço de envio de e-mail com senha/link de redefinição.
+        private const string TemporaryPassword = "admin";
 
         public async Task<LoginResponseDto> LoginAsync(LoginRequestDto loginRequest)
         {
@@ -56,6 +61,36 @@ namespace RC.Service.Services
                 LastName = user.LastName,
                 Role = user.Role.Name
             };
+        }
+
+        public async Task ResetPasswordAsync(ResetPasswordDto resetPassword)
+        {
+            var user = await _userRepository.GetByEmailAsync(resetPassword.Email);
+
+            // E-mail inexistente: retorna silenciosamente — a resposta é sempre a mesma
+            // genérica no controller, para não revelar quais e-mails têm conta.
+            // Usuário inativo também é resetado sem efeito prático: o login bloqueia inativos.
+            if (user is null)
+                return;
+
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(TemporaryPassword);
+            await _userRepository.UpdateAsync(user);
+        }
+
+        // Troca de senha do próprio usuário autenticado (tela de perfil):
+        // exige a senha atual correta antes de gravar a nova.
+        public async Task ChangePasswordAsync(ChangePasswordDto changePassword, long currentUserId)
+        {
+            var user = await _userRepository.GetByIdAsync(currentUserId)
+                ?? throw new NotFoundException("User not found");
+
+            // Senha atual incorreta é regra de negócio (422), não 401 — um 401 aqui
+            // faria o interceptor do frontend derrubar a sessão do usuário logado.
+            if (!BCrypt.Net.BCrypt.Verify(changePassword.CurrentPassword, user.PasswordHash))
+                throw new BusinessRuleException("Current password is incorrect.");
+
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(changePassword.NewPassword);
+            await _userRepository.UpdateAsync(user);
         }
     }
 }

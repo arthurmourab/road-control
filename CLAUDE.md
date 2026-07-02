@@ -22,14 +22,15 @@ entre projetos é **unidirecional** — uma camada só conhece as que estão aci
 
 | Projeto        | Responsabilidade                                                        | Depende de        |
 |----------------|-------------------------------------------------------------------------|-------------------|
-| **RC.Domain**  | Entidades, interfaces (repos e services), exceções de domínio           | (nada)            |
 | **RC.Shared**  | Contratos: DTOs, enums, `ApiResponse<T>`, `PagedResult<T>`              | (nada)            |
+| **RC.Domain**  | Entidades, interfaces (repos e services), exceções de domínio           | Shared            |
 | **RC.Data**    | EF Core: `RCDbContext`, mappings, implementações de repositórios        | Domain, Shared    |
 | **RC.Service** | Regras de negócio, mapeamento DTO↔Entity, registro de DI                | Domain, Data, Shared |
 | **RC.WebApi**  | Controllers, pipeline HTTP, middleware, autenticação                    | todas             |
 
 Regras de dependência:
-- **Domain não depende de ninguém.** Não importe EF Core, ASP.NET ou Shared dentro de Domain.
+- **Shared não depende de ninguém** — é projeto-folha, só contratos (DTOs, enums, modelos de resultado).
+- **Domain só depende de Shared** (DTOs/enums nas assinaturas de interfaces e entidades). Não importe EF Core nem ASP.NET dentro de Domain.
 - **Service depende da _interface_ do repositório (`IXRepository`), nunca da implementação concreta.**
 - **Controller nunca acessa repositório nem `DbContext` direto** — só fala com o service.
 
