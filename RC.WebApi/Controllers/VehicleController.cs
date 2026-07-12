@@ -27,7 +27,7 @@ namespace RC.WebApi.Controllers
             return StatusCode(200, ApiResponse<PagedResult<VehicleDto>>.Ok(response));
         }
 
-        [Authorize(Roles = Role.Roles.UserManagers)]
+        [Authorize(Roles = Role.Roles.FleetManagers)]
         [HttpPost]
         public async Task<IActionResult> AddNewAsync([FromBody] NewVehicleDto newVehicle)
         {
@@ -35,7 +35,7 @@ namespace RC.WebApi.Controllers
             return StatusCode(201, ApiResponse<VehicleDto>.Ok(response));
         }
 
-        [Authorize(Roles = Role.Roles.UserManagers)]
+        [Authorize(Roles = Role.Roles.FleetManagers)]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateAsync([FromRoute] long id, [FromBody] UpdateVehicleDto updateVehicle)
         {
@@ -43,7 +43,7 @@ namespace RC.WebApi.Controllers
             return StatusCode(200, ApiResponse<VehicleDto>.Ok(response));
         }
 
-        [Authorize(Roles = Role.Roles.UserManagers)]
+        [Authorize(Roles = Role.Roles.FleetManagers)]
         [HttpPatch("{id}/status")]
         public async Task<IActionResult> SetStatusAsync([FromRoute] long id, [FromBody] UpdateStatusDto updateStatus)
         {

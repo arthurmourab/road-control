@@ -27,7 +27,10 @@ namespace RC.Shared.Dtos.User
         [Range(1, long.MaxValue)]
         public long RoleId { get; set; }
 
-        // Opcional — SystemAdmin não pertence a nenhuma organização
+        // Opcional — obrigatório apenas para papéis de organização (OrganizationAdmin, Driver)
         public long? OrganizationId { get; set; }
+
+        // Opcional — obrigatório apenas para papéis de posto (GasStationAdmin, GasStationAttendant)
+        public long? GasStationId { get; set; }
     }
 }

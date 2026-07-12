@@ -13,21 +13,23 @@ namespace RC.Data.Repositories
     {
         private readonly RCDbContext _context = context;
 
-        public async Task<IEnumerable<User>> GetAllAsync(int currentPage, int pageSize, long? organizationId = null)
+        public async Task<IEnumerable<User>> GetAllAsync(int currentPage, int pageSize, long? organizationId = null, long? gasStationId = null)
         {
             return await _context.Set<User>()
                 .Include(u => u.Role)
                 .Where(u => organizationId == null || u.OrganizationId == organizationId)
+                .Where(u => gasStationId == null || u.GasStationId == gasStationId)
                 .OrderBy(u => u.Id)
                 .Skip((currentPage - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
         }
 
-        public async Task<int> GetAllTotalAsync(long? organizationId = null)
+        public async Task<int> GetAllTotalAsync(long? organizationId = null, long? gasStationId = null)
         {
             return await _context.Set<User>()
                 .Where(u => organizationId == null || u.OrganizationId == organizationId)
+                .Where(u => gasStationId == null || u.GasStationId == gasStationId)
                 .CountAsync();
         }
 

@@ -9,7 +9,7 @@ namespace RC.Domain.Interfaces.Services
     public interface IUserService
     {
         Task<PagedResult<UserDto>> GetAllAsync(int currentPage, int pageSize,
-            long currentUserId, string? currentUserRole, long? organizationId);
+            long currentUserId, string? currentUserRole, long? organizationId, long? gasStationId);
         Task<UserDto> GetByIdAsync(long id);
         Task<UserDto> AddAsync(NewUserDto newUser, long currentUserId, string? currentUserRole);
         Task<UserDto> SetActiveAsync(long id, bool isActive, long currentUserId, string? currentUserRole);

@@ -17,5 +17,10 @@ namespace RC.Domain.Entities
         // Organização à qual o usuário pertence (opcional — SystemAdmin não pertence a nenhuma)
         public long? OrganizationId { get; set; }
         public Organization Organization { get; set; }
+
+        // Posto ao qual o usuário pertence (opcional — papéis de posto:
+        // GasStationAdmin e GasStationAttendant). Um usuário nunca tem organização E posto.
+        public long? GasStationId { get; set; }
+        public GasStation? GasStation { get; set; }
     }
 }

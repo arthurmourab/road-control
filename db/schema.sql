@@ -41,11 +41,14 @@ CREATE TABLE rc.Users
     IsActive     BIT            NOT NULL,
     CreatedAt    DATETIME2      NOT NULL,
     UpdatedAt    DATETIME2      NOT NULL,
-    OrganizationId BIGINT       NULL,   -- opcional: SystemAdmin não pertence a organização
+    OrganizationId BIGINT       NULL,   -- opcional: papéis de organização (OrganizationAdmin, Driver)
+    GasStationId BIGINT         NULL,   -- opcional: papéis de posto (GasStationAdmin, GasStationAttendant)
     CONSTRAINT PK_Users PRIMARY KEY (Id),
     CONSTRAINT FK_Users_Roles FOREIGN KEY (RoleId) REFERENCES rc.Roles (Id)
         ON DELETE NO ACTION ON UPDATE NO ACTION,
     CONSTRAINT FK_Users_Organizations FOREIGN KEY (OrganizationId) REFERENCES rc.Organizations (Id)
+        ON DELETE NO ACTION ON UPDATE NO ACTION,
+    CONSTRAINT FK_Users_GasStations FOREIGN KEY (GasStationId) REFERENCES rc.GasStations (Id)
         ON DELETE NO ACTION ON UPDATE NO ACTION
 );
 GO
@@ -57,6 +60,9 @@ CREATE INDEX IX_Users_RoleId ON rc.Users (RoleId);
 GO
 
 CREATE INDEX IX_Users_OrganizationId ON rc.Users (OrganizationId);
+GO
+
+CREATE INDEX IX_Users_GasStationId ON rc.Users (GasStationId);
 GO
 
 -- rc.Organizations ----------------------------------------------------------

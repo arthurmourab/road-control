@@ -23,15 +23,15 @@ namespace RC.WebApi.Controllers
             return StatusCode(201, ApiResponse<UserDto>.Ok(response));
         }
         
-        // O service restringe a listagem à organização do chamador
-        // (SystemAdmin enxerga tudo e pode filtrar via ?organizationId=)
+        // O service restringe a listagem ao escopo do chamador (organização ou posto)
+        // (SystemAdmin enxerga tudo e pode filtrar via ?organizationId= e/ou ?gasStationId=)
         [Authorize(Roles = Role.Roles.UserManagers)]
         [HttpGet]
         public async Task<IActionResult> GetAllAsync([FromQuery] int currentPage = 1, int pageSize = 20,
-            [FromQuery] long? organizationId = null)
+            [FromQuery] long? organizationId = null, [FromQuery] long? gasStationId = null)
         {
             var response = await _userService.GetAllAsync(currentPage, pageSize,
-                User.GetUserId(), User.GetRole(), organizationId);
+                User.GetUserId(), User.GetRole(), organizationId, gasStationId);
             return StatusCode(200, ApiResponse<PagedResult<UserDto>>.Ok(response));
         }
 

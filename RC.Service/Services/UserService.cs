@@ -1,4 +1,4 @@
-﻿using RC.Domain.Entities;
+using RC.Domain.Entities;
 using RC.Domain.Exceptions;
 using RC.Domain.Interfaces.Repositories;
 using RC.Domain.Interfaces.Services;
@@ -10,18 +10,21 @@ namespace RC.Service.Services
     public class UserService(
         IUserRepository userRepository,
         IOrganizationRepository organizationRepository,
+        IGasStationRepository gasStationRepository,
         IRoleRepository roleRepository) : IUserService
     {
         private readonly IUserRepository _userRepository = userRepository;
         private readonly IOrganizationRepository _organizationRepository = organizationRepository;
+        private readonly IGasStationRepository _gasStationRepository = gasStationRepository;
         private readonly IRoleRepository _roleRepository = roleRepository;
-        public async Task<PagedResult<UserDto>> GetAllAsync(int currentPage, int pageSize,
-            long currentUserId, string? currentUserRole, long? organizationId)
-        {
-            var scopeOrganizationId = await ResolveOrganizationScopeAsync(currentUserId, currentUserRole, organizationId);
 
-            var users = await _userRepository.GetAllAsync(currentPage, pageSize, scopeOrganizationId);
-            var userTotal = await _userRepository.GetAllTotalAsync(scopeOrganizationId);
+        public async Task<PagedResult<UserDto>> GetAllAsync(int currentPage, int pageSize,
+            long currentUserId, string? currentUserRole, long? organizationId, long? gasStationId)
+        {
+            var scope = await ResolveCallerScopeAsync(currentUserId, currentUserRole, organizationId, gasStationId);
+
+            var users = await _userRepository.GetAllAsync(currentPage, pageSize, scope.OrganizationId, scope.GasStationId);
+            var userTotal = await _userRepository.GetAllTotalAsync(scope.OrganizationId, scope.GasStationId);
 
             return new PagedResult<UserDto>
             {
@@ -37,13 +40,16 @@ namespace RC.Service.Services
             var role = await _roleRepository.GetByIdAsync(newUserDto.RoleId)
                 ?? throw new NotFoundException("Role not found");
 
-            // Resolve a organização conforme quem está cadastrando:
-            // OrganizationAdmin usa a própria org; SystemAdmin informa livremente no body
-            var organizationId = await ResolveOrganizationIdAsync(newUserDto, currentUserId, currentUserRole);
+            // Matriz de alçada: cada papel de chamador só cria papéis da própria alçada
+            EnsureCallerCanCreateRole(currentUserRole, role.Name);
 
-            // Motoristas precisam pertencer a uma organização
-            if (role.Name == Role.Roles.Driver && !organizationId.HasValue)
-                throw new BusinessRuleException("Drivers must belong to an organization.");
+            // Resolve os vínculos (organização/posto) conforme quem está cadastrando:
+            // OrganizationAdmin usa a própria org, GasStationAdmin usa o próprio posto,
+            // SystemAdmin informa livremente no body
+            var (organizationId, gasStationId) = await ResolveMembershipAsync(newUserDto, currentUserId, currentUserRole);
+
+            // Coerência papel do novo usuário ↔ vínculo
+            ValidateRoleMembership(role.Name, organizationId, gasStationId);
 
             if (organizationId.HasValue)
             {
@@ -51,7 +57,13 @@ namespace RC.Service.Services
                     ?? throw new NotFoundException("Organization not found");
             }
 
-            var newUser = MapNewUserDtoToUser(newUserDto, organizationId);
+            if (gasStationId.HasValue)
+            {
+                _ = await _gasStationRepository.GetByIdAsync(gasStationId.Value)
+                    ?? throw new NotFoundException("Gas station not found");
+            }
+
+            var newUser = MapNewUserDtoToUser(newUserDto, organizationId, gasStationId);
 
             var exists = await _userRepository.GetByEmailAsync(newUser.Email);
             if (exists != null) throw new ConflictException("User already registred.");
@@ -60,25 +72,99 @@ namespace RC.Service.Services
             return MapUserToUserDto(user);
         }
 
-        private async Task<long?> ResolveOrganizationIdAsync(NewUserDto newUserDto, long currentUserId, string? currentUserRole)
+        // Papéis que cada chamador pode criar:
+        // SystemAdmin → qualquer; OrganizationAdmin → OrganizationAdmin e Driver;
+        // GasStationAdmin → GasStationAdmin e GasStationAttendant.
+        private static void EnsureCallerCanCreateRole(string? currentUserRole, string targetRoleName)
         {
-            // SystemAdmin pode cadastrar em qualquer organização (ou nenhuma)
-            if (currentUserRole != Role.Roles.OrganizationAdmin)
-                return newUserDto.OrganizationId;
+            switch (currentUserRole)
+            {
+                case Role.Roles.SystemAdmin:
+                    return;
+
+                case Role.Roles.OrganizationAdmin:
+                    if (targetRoleName != Role.Roles.OrganizationAdmin && targetRoleName != Role.Roles.Driver)
+                        throw new BusinessRuleException("Organization admins can only create organization admins and drivers.");
+                    return;
+
+                case Role.Roles.GasStationAdmin:
+                    if (targetRoleName != Role.Roles.GasStationAdmin && targetRoleName != Role.Roles.GasStationAttendant)
+                        throw new BusinessRuleException("Gas station admins can only create gas station admins and gas station attendants.");
+                    return;
+
+                default:
+                    // O [Authorize] do controller já restringe a UserManagers — defesa em profundidade
+                    throw new BusinessRuleException("Caller role is not allowed to create users.");
+            }
+        }
+
+        private async Task<(long? OrganizationId, long? GasStationId)> ResolveMembershipAsync(
+            NewUserDto newUserDto, long currentUserId, string? currentUserRole)
+        {
+            // SystemAdmin informa os vínculos livremente no body
+            if (currentUserRole == Role.Roles.SystemAdmin)
+                return (newUserDto.OrganizationId, newUserDto.GasStationId);
 
             var currentUser = await _userRepository.GetByIdAsync(currentUserId)
                 ?? throw new NotFoundException("Current user not found");
 
-            if (!currentUser.OrganizationId.HasValue)
-                throw new BusinessRuleException("Organization admin must belong to an organization.");
+            if (currentUserRole == Role.Roles.OrganizationAdmin)
+            {
+                if (!currentUser.OrganizationId.HasValue)
+                    throw new BusinessRuleException("Organization admin must belong to an organization.");
 
-            // Se informou uma organização diferente da própria, recusa explicitamente
-            // (em vez de corrigir em silêncio)
-            if (newUserDto.OrganizationId.HasValue && newUserDto.OrganizationId.Value != currentUser.OrganizationId.Value)
-                throw new BusinessRuleException("Organization admins can only register users in their own organization.");
+                if (newUserDto.GasStationId.HasValue)
+                    throw new BusinessRuleException("Organization admins cannot assign users to a gas station.");
 
-            // Omitiu (ou informou a própria): usa a organização do admin
-            return currentUser.OrganizationId;
+                // Se informou uma organização diferente da própria, recusa explicitamente
+                // (em vez de corrigir em silêncio)
+                if (newUserDto.OrganizationId.HasValue && newUserDto.OrganizationId.Value != currentUser.OrganizationId.Value)
+                    throw new BusinessRuleException("Organization admins can only register users in their own organization.");
+
+                // Omitiu (ou informou a própria): usa a organização do admin
+                return (currentUser.OrganizationId, null);
+            }
+
+            // GasStationAdmin — espelho da regra do OrganizationAdmin, para postos
+            if (!currentUser.GasStationId.HasValue)
+                throw new BusinessRuleException("Gas station admin must belong to a gas station.");
+
+            if (newUserDto.OrganizationId.HasValue)
+                throw new BusinessRuleException("Gas station admins cannot assign users to an organization.");
+
+            if (newUserDto.GasStationId.HasValue && newUserDto.GasStationId.Value != currentUser.GasStationId.Value)
+                throw new BusinessRuleException("Gas station admins can only register users in their own gas station.");
+
+            return (null, currentUser.GasStationId);
+        }
+
+        // Coerência entre o papel do novo usuário e seus vínculos:
+        // papéis de organização exigem organização; papéis de posto exigem posto;
+        // SystemAdmin não tem vínculo algum; ninguém tem os dois ao mesmo tempo.
+        private static void ValidateRoleMembership(string roleName, long? organizationId, long? gasStationId)
+        {
+            if (organizationId.HasValue && gasStationId.HasValue)
+                throw new BusinessRuleException("A user cannot belong to an organization and a gas station at the same time.");
+
+            switch (roleName)
+            {
+                case Role.Roles.SystemAdmin:
+                    if (organizationId.HasValue || gasStationId.HasValue)
+                        throw new BusinessRuleException("System admins cannot belong to an organization or a gas station.");
+                    break;
+
+                case Role.Roles.OrganizationAdmin:
+                case Role.Roles.Driver:
+                    if (!organizationId.HasValue)
+                        throw new BusinessRuleException("Organization admins and drivers must belong to an organization.");
+                    break;
+
+                case Role.Roles.GasStationAdmin:
+                case Role.Roles.GasStationAttendant:
+                    if (!gasStationId.HasValue)
+                        throw new BusinessRuleException("Gas station admins and attendants must belong to a gas station.");
+                    break;
+            }
         }
 
         public async Task<UserDto> GetByIdAsync(long id)
@@ -91,16 +177,21 @@ namespace RC.Service.Services
         {
             var user = await _userRepository.GetByIdAsync(id) ?? throw new NotFoundException("User not found");
 
-            // OrganizationAdmin só altera usuários da própria organização.
-            // Responde 404 (e não 403) para não revelar a existência de usuários de outras organizações.
-            var scopeOrganizationId = await ResolveOrganizationScopeAsync(currentUserId, currentUserRole, null);
-            if (scopeOrganizationId.HasValue && user.OrganizationId != scopeOrganizationId.Value)
+            // Chamador não-SystemAdmin só altera usuários do próprio escopo (organização ou posto).
+            // Responde 404 (e não 403) para não revelar a existência de usuários fora do escopo.
+            var scope = await ResolveCallerScopeAsync(currentUserId, currentUserRole, null, null);
+            if (scope.OrganizationId.HasValue && user.OrganizationId != scope.OrganizationId.Value)
+                throw new NotFoundException("User not found");
+            if (scope.GasStationId.HasValue && user.GasStationId != scope.GasStationId.Value)
                 throw new NotFoundException("User not found");
 
-            // OrganizationAdmin só altera o status de motoristas (nunca de outros admins nem o próprio).
-            // Aqui o alvo já é comprovadamente da mesma organização, então 422 não revela nada novo.
-            if (currentUserRole != Role.Roles.SystemAdmin && user.Role.Name != Role.Roles.Driver)
+            // OrganizationAdmin só altera o status de motoristas e GasStationAdmin só o de
+            // frentistas (nunca de outros admins nem o próprio). Aqui o alvo já é
+            // comprovadamente do mesmo escopo, então 422 não revela nada novo.
+            if (currentUserRole == Role.Roles.OrganizationAdmin && user.Role.Name != Role.Roles.Driver)
                 throw new BusinessRuleException("Organization admins can only change the status of drivers.");
+            if (currentUserRole == Role.Roles.GasStationAdmin && user.Role.Name != Role.Roles.GasStationAttendant)
+                throw new BusinessRuleException("Gas station admins can only change the status of gas station attendants.");
 
             user.IsActive = isActive;
             await _userRepository.UpdateAsync(user);
@@ -108,21 +199,25 @@ namespace RC.Service.Services
             return MapUserToUserDto(user);
         }
 
-        // Resolve o escopo de organização do chamador:
-        // SystemAdmin enxerga tudo (podendo filtrar por uma organização específica);
-        // os demais papéis ficam restritos à própria organização.
-        private async Task<long?> ResolveOrganizationScopeAsync(long currentUserId, string? currentUserRole, long? requestedOrganizationId)
+        // Resolve o escopo do chamador (organização OU posto — nunca ambos):
+        // SystemAdmin enxerga tudo (podendo filtrar por organização e/ou posto específicos);
+        // os demais papéis ficam restritos à própria organização ou ao próprio posto.
+        private async Task<(long? OrganizationId, long? GasStationId)> ResolveCallerScopeAsync(
+            long currentUserId, string? currentUserRole, long? requestedOrganizationId, long? requestedGasStationId)
         {
             if (currentUserRole == Role.Roles.SystemAdmin)
-                return requestedOrganizationId;
+                return (requestedOrganizationId, requestedGasStationId);
 
             var currentUser = await _userRepository.GetByIdAsync(currentUserId)
                 ?? throw new NotFoundException("Current user not found");
 
-            if (!currentUser.OrganizationId.HasValue)
-                throw new BusinessRuleException("User must belong to an organization.");
+            if (currentUser.OrganizationId.HasValue)
+                return (currentUser.OrganizationId, null);
 
-            return currentUser.OrganizationId;
+            if (currentUser.GasStationId.HasValue)
+                return (null, currentUser.GasStationId);
+
+            throw new BusinessRuleException("User must belong to an organization or a gas station.");
         }
 
         private UserDto MapUserToUserDto(User user)
@@ -137,11 +232,12 @@ namespace RC.Service.Services
                 Email = user.Email,
                 IsActive = user.IsActive,
                 Role = user.Role.Name,
-                OrganizationId = user.OrganizationId
+                OrganizationId = user.OrganizationId,
+                GasStationId = user.GasStationId
             };
         }
 
-        private User MapNewUserDtoToUser(NewUserDto newUser, long? organizationId)
+        private User MapNewUserDtoToUser(NewUserDto newUser, long? organizationId, long? gasStationId)
         {
             return new User
             {
@@ -151,7 +247,8 @@ namespace RC.Service.Services
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(newUser.Password),
                 IsActive = true, // Novos usuários são sempre ativos
                 RoleId = newUser.RoleId,
-                OrganizationId = organizationId, // já resolvida conforme o papel de quem cadastra
+                OrganizationId = organizationId, // vínculos já resolvidos conforme o papel de quem cadastra
+                GasStationId = gasStationId
             };
         }
 
@@ -167,7 +264,8 @@ namespace RC.Service.Services
                 Email = u.Email,
                 IsActive = u.IsActive,
                 Role = u.Role.Name,
-                OrganizationId = u.OrganizationId
+                OrganizationId = u.OrganizationId,
+                GasStationId = u.GasStationId
             }).ToList();
         }
     }

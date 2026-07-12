@@ -14,12 +14,18 @@ namespace RC.Domain.Entities
             public const string OrganizationAdmin = "OrganizationAdmin";
             public const string Driver = "Driver";
             public const string GasStationAttendant = "GasStationAttendant";
+            public const string GasStationAdmin = "GasStationAdmin";
 
             // Perfis autorizados a registrar abastecimentos
             public const string FuelingManagers = $"{Driver},{OrganizationAdmin},{SystemAdmin}";
 
-            // Perfis autorizados a cadastrar usuários
-            public const string UserManagers = $"{OrganizationAdmin},{SystemAdmin}";
+            // Perfis autorizados a cadastrar/gerenciar usuários (cada um restrito
+            // à própria alçada — matriz detalhada no UserService)
+            public const string UserManagers = $"{OrganizationAdmin},{GasStationAdmin},{SystemAdmin}";
+
+            // Perfis autorizados a gerenciar a frota (veículos) — GasStationAdmin
+            // NÃO participa: postos não gerenciam veículos das organizações
+            public const string FleetManagers = $"{OrganizationAdmin},{SystemAdmin}";
         }
     }
 }
