@@ -9,10 +9,12 @@ namespace RC.Service.Services
 {
     public class GasStationService(
         IGasStationRepository gasStationRepository,
-        IOrganizationRepository organizationRepository) : IGasStationService
+        IOrganizationRepository organizationRepository,
+        IUserRepository userRepository) : IGasStationService
     {
         private readonly IGasStationRepository _gasStationRepository = gasStationRepository;
         private readonly IOrganizationRepository _organizationRepository = organizationRepository;
+        private readonly IUserRepository _userRepository = userRepository;
 
         public async Task<PagedResult<GasStationDto>> GetAllAsync(int currentPage, int pageSize)
         {
@@ -26,6 +28,25 @@ namespace RC.Service.Services
                 TotalRows = total,
                 Results = MapGasStationListToDtoList(gasStations)
             };
+        }
+
+        public async Task<IEnumerable<GasStationDto>> GetAvailableAsync(long currentUserId, string? currentUserRole)
+        {
+            // Resolve a organização do chamador; SystemAdmin sem organização vê todos os ativos
+            long? organizationId = null;
+            if (currentUserRole != Role.Roles.SystemAdmin)
+            {
+                var currentUser = await _userRepository.GetByIdAsync(currentUserId)
+                    ?? throw new NotFoundException("Current user not found");
+
+                if (!currentUser.OrganizationId.HasValue)
+                    throw new BusinessRuleException("User must belong to an organization.");
+
+                organizationId = currentUser.OrganizationId;
+            }
+
+            var gasStations = await _gasStationRepository.GetAvailableForOrganizationAsync(organizationId);
+            return MapGasStationListToDtoList(gasStations);
         }
 
         public async Task<GasStationDto> AddAsync(NewGasStationDto newGasStationDto)

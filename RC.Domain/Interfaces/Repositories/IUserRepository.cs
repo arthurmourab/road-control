@@ -11,6 +11,8 @@ namespace RC.Domain.Interfaces.Repositories
         Task<int> GetAllTotalAsync(long? organizationId = null, long? gasStationId = null);
         Task<User?> GetByIdAsync(long id);
         Task<User?> GetByEmailAsync(string email);
+        // Frentistas ativos de um posto (para casar o código de confirmação no registro de abastecimento)
+        Task<IEnumerable<User>> GetActiveAttendantsByStationAsync(long gasStationId);
         Task<User> AddAsync(User newUser);
         Task<User?> DeactivateByIdAsync(long id);
         Task UpdateAsync(User user);

@@ -26,6 +26,7 @@ namespace RC.Data.Mappings
             builder.Property(u => u.UpdatedAt).HasColumnName("UpdatedAt");
             builder.Property(u => u.OrganizationId).HasColumnName("OrganizationId");
             builder.Property(u => u.GasStationId).HasColumnName("GasStationId");
+            builder.Property(u => u.ConfirmationSecret).HasColumnName("ConfirmationSecret").HasMaxLength(100);
 
             builder.HasIndex(u => u.Email).IsUnique();
 

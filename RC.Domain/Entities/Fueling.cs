@@ -14,6 +14,11 @@ namespace RC.Domain.Entities
         public long DriverId { get; set; }
         public User Driver { get; set; }
 
+        // Frentista que forneceu o código de confirmação.
+        // Nullable no banco (registros históricos não têm), mas SEMPRE preenchido em novos.
+        public long? AttendantId { get; set; }
+        public User? Attendant { get; set; }
+
         // Organização dona do veículo no momento do abastecimento (snapshot)
         public long OrganizationId { get; set; }
         public Organization Organization { get; set; }

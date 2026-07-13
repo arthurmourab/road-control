@@ -27,5 +27,10 @@ namespace RC.Shared.Dtos.Fueling
         public int Mileage { get; set; }
 
         public DateTime FueledAt { get; set; }
+
+        // Código de confirmação fornecido presencialmente pelo frentista. Obrigatório
+        // em todo registro (inclusive quando gestor/admin lança em nome do motorista).
+        [Required]
+        public string ConfirmationCode { get; set; } = string.Empty;
     }
 }

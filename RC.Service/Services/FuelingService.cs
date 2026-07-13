@@ -11,12 +11,14 @@ namespace RC.Service.Services
         IFuelingRepository fuelingRepository,
         IVehicleRepository vehicleRepository,
         IGasStationRepository gasStationRepository,
-        IUserRepository userRepository) : IFuelingService
+        IUserRepository userRepository,
+        IConfirmationCodeService confirmationCodeService) : IFuelingService
     {
         private readonly IFuelingRepository _fuelingRepository = fuelingRepository;
         private readonly IVehicleRepository _vehicleRepository = vehicleRepository;
         private readonly IGasStationRepository _gasStationRepository = gasStationRepository;
         private readonly IUserRepository _userRepository = userRepository;
+        private readonly IConfirmationCodeService _confirmationCodeService = confirmationCodeService;
 
         public async Task<FuelingDto> RegisterAsync(NewFuelingDto newFuelingDto, long currentUserId, string? currentUserRole)
         {
@@ -51,11 +53,17 @@ namespace RC.Service.Services
             if (lastMileage.HasValue && newFuelingDto.Mileage < lastMileage.Value)
                 throw new BusinessRuleException($"Mileage cannot be lower than the last record ({lastMileage.Value}).");
 
+            // Identifica o frentista dono do código: itera os frentistas ativos DESTE posto e
+            // valida o código na janela atual+anterior. Escopo restrito ao posto do abastecimento
+            // impede que o código de um frentista de outro posto seja aceito.
+            var attendantId = await ResolveAttendantByCodeAsync(gasStation.Id, newFuelingDto.ConfirmationCode);
+
             var fueling = new Fueling
             {
                 VehicleId = vehicle.Id,
                 GasStationId = gasStation.Id,
                 DriverId = driverId,
+                AttendantId = attendantId,
                 OrganizationId = vehicle.OrganizationId,
                 FuelType = newFuelingDto.FuelType,
                 Liters = newFuelingDto.Liters,
@@ -71,12 +79,27 @@ namespace RC.Service.Services
 
         public async Task<PagedResult<FuelingDto>> GetAllAsync(int currentPage, int pageSize,
             long currentUserId, string? currentUserRole,
-            long? organizationId, long? vehicleId, DateTime? from, DateTime? to)
+            long? organizationId, long? vehicleId, DateTime? from, DateTime? to, long? attendantId)
         {
-            var scopeOrganizationId = await ResolveOrganizationScopeAsync(currentUserId, currentUserRole, organizationId);
+            long? scopeOrganizationId;
+            long? scopeAttendantId;
 
-            var fuelings = await _fuelingRepository.GetAllAsync(currentPage, pageSize, scopeOrganizationId, vehicleId, from, to);
-            var total = await _fuelingRepository.GetAllTotalAsync(scopeOrganizationId, vehicleId, from, to);
+            // Frentista não tem organização: vê apenas os abastecimentos que ele confirmou.
+            // Tratado ANTES do escopo de organização (que lançaria para usuário sem org).
+            if (currentUserRole == Role.Roles.GasStationAttendant)
+            {
+                scopeOrganizationId = null;
+                scopeAttendantId = currentUserId;
+            }
+            else
+            {
+                scopeOrganizationId = await ResolveOrganizationScopeAsync(currentUserId, currentUserRole, organizationId);
+                // SystemAdmin pode filtrar opcionalmente por frentista; demais papéis ignoram o parâmetro
+                scopeAttendantId = currentUserRole == Role.Roles.SystemAdmin ? attendantId : null;
+            }
+
+            var fuelings = await _fuelingRepository.GetAllAsync(currentPage, pageSize, scopeOrganizationId, vehicleId, from, to, scopeAttendantId);
+            var total = await _fuelingRepository.GetAllTotalAsync(scopeOrganizationId, vehicleId, from, to, scopeAttendantId);
 
             return new PagedResult<FuelingDto>
             {
@@ -91,6 +114,52 @@ namespace RC.Service.Services
         {
             var fueling = await _fuelingRepository.GetByIdAsync(id) ?? throw new NotFoundException("Fueling not found");
             return MapFuelingToDto(fueling);
+        }
+
+        public async Task<ConfirmationCodeDto> GetConfirmationCodeAsync(long currentUserId)
+        {
+            var attendant = await _userRepository.GetByIdAsync(currentUserId)
+                ?? throw new NotFoundException("User not found");
+
+            // Provisiona o segredo sob demanda (cobre frentistas já existentes sem segredo)
+            if (string.IsNullOrEmpty(attendant.ConfirmationSecret))
+            {
+                attendant.ConfirmationSecret = _confirmationCodeService.GenerateSecret();
+                await _userRepository.UpdateAsync(attendant);
+            }
+
+            var now = DateTime.UtcNow;
+            var code = _confirmationCodeService.GetCode(attendant.ConfirmationSecret, now);
+
+            var period = _confirmationCodeService.PeriodSeconds;
+            var unixSeconds = (long)(now - DateTime.UnixEpoch).TotalSeconds;
+            var secondsRemaining = (int)(period - (unixSeconds % period));
+
+            return new ConfirmationCodeDto
+            {
+                Code = code,
+                ExpiresAt = now.AddSeconds(secondsRemaining),
+                SecondsRemaining = secondsRemaining
+            };
+        }
+
+        // Retorna o Id do frentista ativo do posto cujo código bate; 422 se nenhum casar
+        // (também cobre o posto sem frentistas ativos). Não revela qual frentista casou.
+        private async Task<long> ResolveAttendantByCodeAsync(long gasStationId, string confirmationCode)
+        {
+            var attendants = await _userRepository.GetActiveAttendantsByStationAsync(gasStationId);
+            var now = DateTime.UtcNow;
+
+            foreach (var attendant in attendants)
+            {
+                if (string.IsNullOrEmpty(attendant.ConfirmationSecret))
+                    continue;
+
+                if (_confirmationCodeService.IsValid(attendant.ConfirmationSecret, confirmationCode, now))
+                    return attendant.Id;
+            }
+
+            throw new BusinessRuleException("Invalid or expired confirmation code.");
         }
 
         // Resolve o escopo de organização do chamador:
@@ -133,6 +202,7 @@ namespace RC.Service.Services
                 VehicleId = f.VehicleId,
                 GasStationId = f.GasStationId,
                 DriverId = f.DriverId,
+                AttendantId = f.AttendantId,
                 OrganizationId = f.OrganizationId,
                 FuelType = f.FuelType,
                 Liters = f.Liters,

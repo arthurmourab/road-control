@@ -16,6 +16,8 @@ namespace RC.Shared.Dtos.User
         public bool IsActive { get; set; }
         public string Role { get; set; }
         public long? OrganizationId { get; set; }
+        public string? OrganizationName { get; set; }
         public long? GasStationId { get; set; }
+        public string? GasStationName { get; set; }
     }
 }

@@ -18,9 +18,10 @@ namespace RC.Data.Repositories
         }
 
         public async Task<IEnumerable<Fueling>> GetAllAsync(int currentPage, int pageSize,
-            long? organizationId = null, long? vehicleId = null, DateTime? from = null, DateTime? to = null)
+            long? organizationId = null, long? vehicleId = null, DateTime? from = null, DateTime? to = null,
+            long? attendantId = null)
         {
-            return await ApplyFilters(_context.Set<Fueling>(), organizationId, vehicleId, from, to)
+            return await ApplyFilters(_context.Set<Fueling>(), organizationId, vehicleId, from, to, attendantId)
                 .OrderByDescending(f => f.FueledAt)
                 .Skip((currentPage - 1) * pageSize)
                 .Take(pageSize)
@@ -28,20 +29,21 @@ namespace RC.Data.Repositories
         }
 
         public async Task<int> GetAllTotalAsync(long? organizationId = null, long? vehicleId = null,
-            DateTime? from = null, DateTime? to = null)
+            DateTime? from = null, DateTime? to = null, long? attendantId = null)
         {
-            return await ApplyFilters(_context.Set<Fueling>(), organizationId, vehicleId, from, to)
+            return await ApplyFilters(_context.Set<Fueling>(), organizationId, vehicleId, from, to, attendantId)
                 .CountAsync();
         }
 
         private static IQueryable<Fueling> ApplyFilters(IQueryable<Fueling> query,
-            long? organizationId, long? vehicleId, DateTime? from, DateTime? to)
+            long? organizationId, long? vehicleId, DateTime? from, DateTime? to, long? attendantId)
         {
             return query
                 .Where(f => organizationId == null || f.OrganizationId == organizationId)
                 .Where(f => vehicleId == null || f.VehicleId == vehicleId)
                 .Where(f => from == null || f.FueledAt >= from)
-                .Where(f => to == null || f.FueledAt <= to);
+                .Where(f => to == null || f.FueledAt <= to)
+                .Where(f => attendantId == null || f.AttendantId == attendantId);
         }
 
         public async Task<Fueling?> GetByIdAsync(long id)

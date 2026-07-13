@@ -27,6 +27,7 @@ namespace RC.Service.Extensions
             services.AddScoped<IOrganizationService, OrganizationService>();
             services.AddScoped<IGasStationService, GasStationService>();
             services.AddScoped<IFuelingService, FuelingService>();
+            services.AddScoped<IConfirmationCodeService, ConfirmationCodeService>();
 
             // Adição de repositórios
             services.AddScoped<IVehicleRepository, VehicleRepository>();

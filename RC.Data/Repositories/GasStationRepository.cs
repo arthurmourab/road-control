@@ -32,6 +32,21 @@ namespace RC.Data.Repositories
             return await _context.Set<GasStation>().CountAsync();
         }
 
+        public async Task<IEnumerable<GasStation>> GetAvailableForOrganizationAsync(long? organizationId)
+        {
+            var query = _context.Set<GasStation>()
+                .Include(g => g.Organizations)
+                .Where(g => g.IsActive);
+
+            // Restringe aos postos que atendem a organização (globais ou vinculados).
+            // Sem organização (SystemAdmin), devolve todos os ativos.
+            if (organizationId.HasValue)
+                query = query.Where(g => g.IsGlobal
+                    || g.Organizations.Any(o => o.OrganizationId == organizationId.Value));
+
+            return await query.OrderBy(g => g.Id).ToListAsync();
+        }
+
         public async Task<GasStation?> GetByIdAsync(long id)
         {
             return await _context.Set<GasStation>()

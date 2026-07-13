@@ -43,6 +43,7 @@ CREATE TABLE rc.Users
     UpdatedAt    DATETIME2      NOT NULL,
     OrganizationId BIGINT       NULL,   -- opcional: papéis de organização (OrganizationAdmin, Driver)
     GasStationId BIGINT         NULL,   -- opcional: papéis de posto (GasStationAdmin, GasStationAttendant)
+    ConfirmationSecret NVARCHAR(100) NULL, -- opcional: segredo TOTP do frentista (hex); nunca exposto
     CONSTRAINT PK_Users PRIMARY KEY (Id),
     CONSTRAINT FK_Users_Roles FOREIGN KEY (RoleId) REFERENCES rc.Roles (Id)
         ON DELETE NO ACTION ON UPDATE NO ACTION,
@@ -169,6 +170,7 @@ CREATE TABLE rc.Fuelings
     VehicleId      BIGINT        NOT NULL,
     GasStationId   BIGINT        NOT NULL,
     DriverId       BIGINT        NOT NULL,
+    AttendantId    BIGINT        NULL,   -- frentista que forneceu o código (NULL só em registros históricos)
     OrganizationId BIGINT        NOT NULL,
     FuelType       INT           NOT NULL,
     Liters         DECIMAL(9,3)  NOT NULL,
@@ -185,6 +187,8 @@ CREATE TABLE rc.Fuelings
         REFERENCES rc.GasStations (Id) ON DELETE NO ACTION ON UPDATE NO ACTION,
     CONSTRAINT FK_Fuelings_Users FOREIGN KEY (DriverId)
         REFERENCES rc.Users (Id) ON DELETE NO ACTION ON UPDATE NO ACTION,
+    CONSTRAINT FK_Fuelings_Attendants FOREIGN KEY (AttendantId)
+        REFERENCES rc.Users (Id) ON DELETE NO ACTION ON UPDATE NO ACTION,
     CONSTRAINT FK_Fuelings_Organizations FOREIGN KEY (OrganizationId)
         REFERENCES rc.Organizations (Id) ON DELETE NO ACTION ON UPDATE NO ACTION
 );
@@ -195,6 +199,8 @@ GO
 CREATE INDEX IX_Fuelings_GasStationId ON rc.Fuelings (GasStationId);
 GO
 CREATE INDEX IX_Fuelings_DriverId ON rc.Fuelings (DriverId);
+GO
+CREATE INDEX IX_Fuelings_AttendantId ON rc.Fuelings (AttendantId);
 GO
 CREATE INDEX IX_Fuelings_OrganizationId ON rc.Fuelings (OrganizationId);
 GO

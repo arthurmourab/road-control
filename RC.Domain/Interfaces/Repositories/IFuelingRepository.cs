@@ -6,9 +6,10 @@ namespace RC.Domain.Interfaces.Repositories
     {
         Task<Fueling> AddAsync(Fueling newFueling);
         Task<IEnumerable<Fueling>> GetAllAsync(int currentPage, int pageSize,
-            long? organizationId = null, long? vehicleId = null, DateTime? from = null, DateTime? to = null);
+            long? organizationId = null, long? vehicleId = null, DateTime? from = null, DateTime? to = null,
+            long? attendantId = null);
         Task<int> GetAllTotalAsync(long? organizationId = null, long? vehicleId = null,
-            DateTime? from = null, DateTime? to = null);
+            DateTime? from = null, DateTime? to = null, long? attendantId = null);
         Task<Fueling?> GetByIdAsync(long id);
 
         // Maior odômetro já registrado para o veículo (null se não houver abastecimentos)

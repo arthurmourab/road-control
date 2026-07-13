@@ -26,6 +26,13 @@ namespace RC.Domain.Entities
             // Perfis autorizados a gerenciar a frota (veículos) — GasStationAdmin
             // NÃO participa: postos não gerenciam veículos das organizações
             public const string FleetManagers = $"{OrganizationAdmin},{SystemAdmin}";
+
+            // Perfis que consultam os postos disponíveis para a própria organização
+            public const string GasStationViewers = $"{Driver},{OrganizationAdmin},{SystemAdmin}";
+
+            // Perfis que consultam abastecimentos: os gestores + o frentista
+            // (este último vê apenas os que confirmou com o próprio código)
+            public const string FuelingViewers = $"{Driver},{OrganizationAdmin},{SystemAdmin},{GasStationAttendant}";
         }
     }
 }

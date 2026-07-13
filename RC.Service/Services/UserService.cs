@@ -11,12 +11,14 @@ namespace RC.Service.Services
         IUserRepository userRepository,
         IOrganizationRepository organizationRepository,
         IGasStationRepository gasStationRepository,
-        IRoleRepository roleRepository) : IUserService
+        IRoleRepository roleRepository,
+        IConfirmationCodeService confirmationCodeService) : IUserService
     {
         private readonly IUserRepository _userRepository = userRepository;
         private readonly IOrganizationRepository _organizationRepository = organizationRepository;
         private readonly IGasStationRepository _gasStationRepository = gasStationRepository;
         private readonly IRoleRepository _roleRepository = roleRepository;
+        private readonly IConfirmationCodeService _confirmationCodeService = confirmationCodeService;
 
         public async Task<PagedResult<UserDto>> GetAllAsync(int currentPage, int pageSize,
             long currentUserId, string? currentUserRole, long? organizationId, long? gasStationId)
@@ -64,6 +66,10 @@ namespace RC.Service.Services
             }
 
             var newUser = MapNewUserDtoToUser(newUserDto, organizationId, gasStationId);
+
+            // Frentista já nasce com segredo de código de confirmação provisionado
+            if (role.Name == Role.Roles.GasStationAttendant)
+                newUser.ConfirmationSecret = _confirmationCodeService.GenerateSecret();
 
             var exists = await _userRepository.GetByEmailAsync(newUser.Email);
             if (exists != null) throw new ConflictException("User already registred.");
@@ -233,7 +239,9 @@ namespace RC.Service.Services
                 IsActive = user.IsActive,
                 Role = user.Role.Name,
                 OrganizationId = user.OrganizationId,
-                GasStationId = user.GasStationId
+                OrganizationName = user.Organization?.Name,
+                GasStationId = user.GasStationId,
+                GasStationName = user.GasStation?.Name
             };
         }
 
@@ -265,7 +273,9 @@ namespace RC.Service.Services
                 IsActive = u.IsActive,
                 Role = u.Role.Name,
                 OrganizationId = u.OrganizationId,
-                GasStationId = u.GasStationId
+                OrganizationName = u.Organization?.Name,
+                GasStationId = u.GasStationId,
+                GasStationName = u.GasStation?.Name
             }).ToList();
         }
     }

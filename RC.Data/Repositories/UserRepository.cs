@@ -17,6 +17,8 @@ namespace RC.Data.Repositories
         {
             return await _context.Set<User>()
                 .Include(u => u.Role)
+                .Include(u => u.Organization)
+                .Include(u => u.GasStation)
                 .Where(u => organizationId == null || u.OrganizationId == organizationId)
                 .Where(u => gasStationId == null || u.GasStationId == gasStationId)
                 .OrderBy(u => u.Id)
@@ -37,6 +39,8 @@ namespace RC.Data.Repositories
         {
             return await _context.Set<User>()
                 .Include(u => u.Role)
+                .Include(u => u.Organization)
+                .Include(u => u.GasStation)
                 .Where(u => u.Id == id)
                 .FirstOrDefaultAsync();
         }
@@ -45,8 +49,22 @@ namespace RC.Data.Repositories
         {
             return await _context.Set<User>()
                 .Include(u => u.Role)
+                .Include(u => u.Organization)
+                .Include(u => u.GasStation)
                 .Where(u => u.Email == email)
                 .FirstOrDefaultAsync();
+        }
+
+        public async Task<IEnumerable<User>> GetActiveAttendantsByStationAsync(long gasStationId)
+        {
+            return await _context.Set<User>()
+                .Include(u => u.Role)
+                .Include(u => u.Organization)
+                .Include(u => u.GasStation)
+                .Where(u => u.GasStationId == gasStationId
+                    && u.IsActive
+                    && u.Role.Name == Role.Roles.GasStationAttendant)
+                .ToListAsync();
         }
 
         public async Task<User> AddAsync(User newUser)
@@ -56,6 +74,8 @@ namespace RC.Data.Repositories
 
             return await _context.Set<User>()
                 .Include(u => u.Role)
+                .Include(u => u.Organization)
+                .Include(u => u.GasStation)
                 .FirstAsync(u => u.Id == newUser.Id);
         }
 

@@ -22,5 +22,9 @@ namespace RC.Domain.Entities
         // GasStationAdmin e GasStationAttendant). Um usuário nunca tem organização E posto.
         public long? GasStationId { get; set; }
         public GasStation? GasStation { get; set; }
+
+        // Segredo (hex) para derivar o código de confirmação (TOTP) — apenas GasStationAttendant.
+        // Provisionado sob demanda; NUNCA exposto pela API.
+        public string? ConfirmationSecret { get; set; }
     }
 }

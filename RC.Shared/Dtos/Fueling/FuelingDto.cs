@@ -10,6 +10,7 @@ namespace RC.Shared.Dtos.Fueling
         public long VehicleId { get; set; }
         public long GasStationId { get; set; }
         public long DriverId { get; set; }
+        public long? AttendantId { get; set; }
         public long OrganizationId { get; set; }
         public FuelTypeEnum FuelType { get; set; }
         public decimal Liters { get; set; }

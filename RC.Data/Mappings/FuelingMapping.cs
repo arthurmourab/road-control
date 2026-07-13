@@ -16,6 +16,7 @@ namespace RC.Data.Mappings
             builder.Property(f => f.VehicleId).HasColumnName("VehicleId").IsRequired();
             builder.Property(f => f.GasStationId).HasColumnName("GasStationId").IsRequired();
             builder.Property(f => f.DriverId).HasColumnName("DriverId").IsRequired();
+            builder.Property(f => f.AttendantId).HasColumnName("AttendantId");
             builder.Property(f => f.OrganizationId).HasColumnName("OrganizationId").IsRequired();
             builder.Property(f => f.FuelType).HasColumnName("FuelType").HasConversion<int>().IsRequired();
             builder.Property(f => f.Liters).HasColumnName("Liters").HasColumnType("decimal(9,3)").IsRequired();
@@ -39,6 +40,11 @@ namespace RC.Data.Mappings
             builder.HasOne(f => f.Driver)
                 .WithMany()
                 .HasForeignKey(f => f.DriverId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(f => f.Attendant)
+                .WithMany()
+                .HasForeignKey(f => f.AttendantId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(f => f.Organization)
